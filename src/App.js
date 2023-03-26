@@ -1,10 +1,9 @@
-// import logo from './logo.svg';
 import VGuard from './Component/VGuard.js'
-import './App.css';
+import './VGuard.css';
 
 function App() {
   return (
-    <VGuard />
+      <VGuard />
   );
 }
 

@@ -42,10 +42,10 @@ export default function VGuard() {
                     color="text.primary"
                     gutterBottom
                     >
-                    VGuard Visualization
+                    V-Guard Visualization
                     </Typography>
                     <Typography variant="h5" align="center" color="text.secondary" paragraph>
-                    This is visualization system for VGuard. You can observe the ordering and consensus progress through
+                    This is visualization system for V-Guard. You can observe the ordering and consensus process in V-Guard through
                     this webpage. More features are coming soon!
                     </Typography>
                     <Stack
@@ -63,7 +63,7 @@ export default function VGuard() {
                     </Stack>
                 </Container>
             </Box>
-            <Container maxWidth="lg">
+            <Container maxWidth="100vw">
                 <Grid 
                     container 
                     justifyContent="center" 

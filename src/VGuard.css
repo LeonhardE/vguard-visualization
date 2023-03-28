@@ -2,3 +2,81 @@
   max-width: 20%;
   margin-left: 40%;
 }
+
+.hiddenmsg {
+  height: 0px;
+  opacity: 0;
+  /* transition: opacity 1s ease-in;
+  -ms-transition: opacity 1s ease-in;
+  -moz-transition: opacity 1s ease-in;
+  -webkit-transition: opacity 1s ease-in; */
+}
+
+.showmsg {
+  height: auto;
+  opacity: 1;
+  transition: opacity 1s ease-out;
+  -ms-transition: opacity 1s ease-out;
+  -moz-transition: opacity 1s ease-out;
+  -webkit-transition: opacity 1s ease-out;
+}
+
+.msgDisplay {
+  display: block;
+}
+
+.msg1 {
+  transition: transform 2s;
+}
+
+.msg2 {
+  margin-left: -24px;
+  transition: transform 2s;
+}
+
+.msg3 {
+  margin-left: -24px;
+  transition: transform 2s;
+}
+
+.msg4 {
+  transition: transform 2s;
+}
+
+.msg5 {
+  transition: transform 2s;
+}
+
+.msg6 {
+  transition: transform 2s;
+}
+
+.msgDisplay:hover .msg1 {
+  transform: translateX(24.2vw);
+  transition: transform 2s;
+}
+
+.msgDisplay:hover .msg2 {
+  transform: translateX(48.5vw);
+  transition: transform 2s;
+}
+
+.msgDisplay:hover .msg3 {
+  transform: translateX(72.8vw);
+  transition: transform 2s;
+}
+
+.msgDisplay:hover .msg4 {
+  transform: translateX(-24.2vw);
+  transition: transform 2s;
+}
+
+.msgDisplay:hover .msg5 {
+  transform: translateX(-48.5vw);
+  transition: transform 2s;
+}
+
+.msgDisplay:hover .msg6 {
+  transform: translateX(-72.8vw);
+  transition: transform 2s;
+}

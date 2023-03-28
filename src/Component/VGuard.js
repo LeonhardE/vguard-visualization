@@ -1,5 +1,5 @@
 import React from 'react';
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
@@ -12,6 +12,16 @@ import Grid from '@mui/material/Grid';
 
 export default function VGuard() {
     const [level, setlevel] = useState(0);
+
+    const messagesEndRef = useRef(null)
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+      }
+    
+      useEffect(() => {
+        scrollToBottom()
+      }, [level]);
 
     return (
         // <Box sx={{ '& > :not(style)': { m: 1 } }}>
@@ -221,6 +231,7 @@ export default function VGuard() {
                         </Message>
                     </Grid>
                 </Grid>
+                <div ref={messagesEndRef}/>
                 <br />
             </Container>
         </ThemeProvider>

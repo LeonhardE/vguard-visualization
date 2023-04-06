@@ -16,6 +16,37 @@ export default function VGuard() {
 
     const messagesEndRef = useRef(null)
 
+    async function testGET() {
+        
+        const response = await fetch("http://localhost:8000/test", {
+            method: 'GET', // *GET, POST, PUT, DELETE, etc.
+            mode: 'cors', // no-cors, cors, *same-origin
+        });
+        const data = await response.json();
+        console.log(data);
+    }
+
+    async function testPOST() {
+        const postdata = {
+            course: "ECE1770",
+            project: "V-Guard"
+        }
+
+        const response = await fetch("http://localhost:8000/test", {
+            method: 'POST', // *GET, POST, PUT, DELETE, etc.
+            mode: 'cors', // no-cors, cors, *same-origin
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(postdata)
+        });
+        const data = await response.json();
+        console.log(data);
+    }
+
+    testGET();
+    testPOST();
+
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
       }

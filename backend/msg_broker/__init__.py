@@ -4,6 +4,7 @@ from flask_cors import CORS
 msg_broker_app = Flask(__name__)
 CORS(msg_broker_app)
 
+
 @msg_broker_app.route('/test', methods=['POST', 'GET'])
 def msg_broker_test():
     postdata = request.json

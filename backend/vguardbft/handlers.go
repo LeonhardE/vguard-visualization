@@ -88,6 +88,24 @@ func takingInitRoles(proposer ServerId) {
 	}
 }
 
+func takingInitRolesVisual(proposer ServerId) {
+	if proposer == ServerId(ServerID) {
+		go runAsOrderPhaseProposerVisual(proposer)
+	} else {
+		proposerLookup.Lock()
+		for i := 0; i < NOP; i++ {
+			proposerLookup.m[Phase(i)] = proposer
+		}
+		proposerLookup.Unlock()
+
+		go runAsValidator()
+	}
+}
+
 func start() {
-	takingInitRoles(ServerId(0))
+	if Role == 0 || Role == 1 {
+		takingInitRoles(ServerId(0))
+	} else {
+		takingInitRolesVisual(ServerId(0))
+	}
 }

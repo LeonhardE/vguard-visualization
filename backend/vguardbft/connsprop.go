@@ -31,6 +31,29 @@ func runAsProposer(proposerId ServerId) {
 	go startConsensusPhaseA()
 }
 
+func runAsOrderPhaseProposerVisual(proposerId ServerId) {
+
+	var wg sync.WaitGroup
+	wg.Add(NOP)
+
+	for i := 0; i < NOP; i++ {
+		go acceptConns(proposerId, &wg, i)
+	}
+
+	wg.Wait()
+	log.Infof("Network connections are now set | # of phases: %v", NOP)
+
+	prepareBooths(NumOfConn, BoothSize)
+
+	txGenerator(MsgSize)
+
+	for i := 0; i < NumOfValidators; i++ {
+		go startOrderingPhaseA(i)
+	}
+
+	// go startConsensusPhaseA()
+}
+
 func closeTCPListener(l *net.TCPListener, phaseNum int) {
 	err := (*l).Close()
 	if err != nil {

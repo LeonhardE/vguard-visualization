@@ -125,7 +125,7 @@ func loadCmdParameters() {
 	flag.IntVar(&Delay, "d", 0, "network delay")
 	flag.BoolVar(&PlainStorage, "s", false, "naive storage")
 	flag.BoolVar(&GC, "gc", false, "garbage collection")
-	flag.IntVar(&Role, "r", PROPOSER, "0 : Proposer | 1 : Validator")
+	flag.IntVar(&Role, "r", PROPOSER, "0 : Proposer | 1 : Validator | 2 : For Visualization")
 	flag.BoolVar(&PerfMetres, "pm", true, "enabling performance metres")
 	flag.Int64Var(&LatMetreInterval, "lm", 100, "latency measurement sample interval")
 	flag.IntVar(&YieldCycle, "yc", 10, "yield sending after # cycles")

@@ -13,6 +13,9 @@ func setLogger() {
 	log.SetLevel(logrus.Level(LogLevel))
 
 	if PlainStorage {
+		// ignore the error if /logs already exists
+		_ = os.Mkdir("./logs", os.ModePerm)
+
 		e := os.RemoveAll(fmt.Sprintf("./logs/s%d", ServerID))
 		if e != nil {
 			log.Fatal(e)

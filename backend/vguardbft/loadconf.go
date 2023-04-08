@@ -28,10 +28,17 @@ func parseConf(numOfServers int) {
 		log.Errorf("close fileServer failed | err: %v\n", err)
 	}
 
-	//first line is explanation
-	if len(fileRows) != numOfServers+1 {
-		log.Errorf("Going to panic | fileRows: %v | n: %v", len(fileRows), numOfServers)
-		panic(errors.New("number of servers in config file does not match with provided $n$"))
+	if Role == 0 || Role == 1 { // normal execution
+		//first line is explanation
+		if len(fileRows) != numOfServers + 1 {
+			log.Errorf("Going to panic | fileRows: %v | n: %v", len(fileRows), numOfServers)
+			panic(errors.New("number of servers in config file does not match with provided $n$"))
+		}
+	} else if Role == 2 || Role == 3 { // for visualization
+		if len(fileRows) != numOfServers + 1 {
+			log.Errorf("Going to panic | fileRows: %v | n: %v", len(fileRows), numOfServers)
+			panic(errors.New("number of servers in config file does not match with provided $n$"))
+		}
 	}
 
 	for i := 0; i < len(fileRows); i++ {
@@ -44,12 +51,18 @@ func parseConf(numOfServers int) {
 
 		row := strings.Split(fileRows[i], " ")
 
-		i, err := strconv.Atoi(row[0])
+		id, err := strconv.Atoi(row[0])
 		if err != nil {
 			panic(err)
 		}
 
-		singleSL.Index = ServerId(i)
+		singleSL.Index = ServerId(id)
+
+		if Role == 2 || Role == 3 { // For visualization
+			if i == 1 { // the first server is the proposer
+				proposerID = ServerId(id)
+			}
+		}
 
 		singleSL.Ip = row[1]
 

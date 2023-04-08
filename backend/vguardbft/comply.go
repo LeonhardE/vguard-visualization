@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"encoding/hex"
+	"fmt"
 	"sync"
 	"time"
 )
@@ -75,6 +76,65 @@ func validatingOAEntry(m *ProposerOPAEntry, encoder *gob.Encoder) {
 	dialSendBack(postReply, encoder, OPA)
 }
 
+func validatingOAEntryVisual(m *ProposerOPAEntry, encoder *gob.Encoder) {
+	log.Debugf("%s | ProposerOPBEntry received (BlockID: %d) @ %v", rpyPhase[OPA], m.BlockId, time.Now().UTC().String())
+
+	ordSnapshot.Lock()
+	if _, ok := ordSnapshot.m[m.BlockId]; ok {
+		ordSnapshot.Unlock()
+		log.Warnf("%s | blockID %v already used", rpyPhase[OPA], m.BlockId)
+		return
+	}
+
+	snapshot := blockSnapshot{
+		hash:    m.Hash,
+		entries: m.Entries,
+		sigs:    nil,
+		booth:   m.Booth,
+	}
+
+	ordSnapshot.m[m.BlockId] = &snapshot
+	ordSnapshot.Unlock()
+
+	cmtSnapshot.Lock()
+	cmtSnapshot.m[m.BlockId] = &blockSnapshot{
+		hash:    m.Hash,
+		entries: m.Entries,
+		tSig:    nil,
+		booth:   m.Booth,
+	}
+
+	valiOrdJobStack.Lock()
+	if s, ok := valiOrdJobStack.s[m.BlockId]; !ok {
+		s := make(chan int, 1)
+		valiOrdJobStack.s[m.BlockId] = s
+		valiOrdJobStack.Unlock()
+		s <- 1
+	} else {
+		valiOrdJobStack.Unlock()
+		s <- 1
+	}
+
+	cmtSnapshot.Unlock()
+
+	sig, err := PenSign(m.Hash)
+	if err != nil {
+		log.Errorf("%s | PenSign failed, err: %v", rpyPhase[OPA], err)
+		return
+	}
+
+	postReply := ValidatorOPAReply{
+		BlockId: m.BlockId,
+		ParSig:  sig,
+	}
+
+	log.Debugf("%s | msg: %v; ps: %v", rpyPhase[OPA], m.BlockId, hex.EncodeToString(sig))
+
+	fmt.Println("OPA send back, Validator", ServerID)
+
+	dialSendBack(postReply, encoder, OPA)
+}
+
 func validatingOBEntry(m *ProposerOPBEntry, encoder *gob.Encoder) {
 	if encoder != nil {
 		log.Debugf("%s | ProposerOPBEntry received (BlockID: %d) @ %v", rpyPhase[OPB], m.BlockId, time.Now().UTC().String())
@@ -132,6 +192,72 @@ func validatingOBEntry(m *ProposerOPBEntry, encoder *gob.Encoder) {
 	cmtSnapshot.Unlock()
 
 	log.Debugf("block %d ordered", m.BlockId)
+}
+
+func validatingOBEntryVisual(m *ProposerOPBEntry, encoder *gob.Encoder) {
+	if encoder != nil {
+		log.Debugf("%s | ProposerOPBEntry received (BlockID: %d) @ %v", rpyPhase[OPB], m.BlockId, time.Now().UTC().String())
+	} else {
+		log.Debugf("%s | Sync up -> ProposerOPBEntry received (BlockID: %d) @ %v", rpyPhase[CPA], m.BlockId, time.Now().UTC().String())
+	}
+
+	err := PenVerify(m.Hash, m.CombSig, PublicPoly)
+	if err != nil {
+
+		fmt.Println("Validator OB verify error!")
+
+		log.Errorf("%v: PenVerify failed | err: %v | BlockID: %v | m.Hash: %v| CombSig: %v",
+			rpyPhase[OPB], err, m.BlockId, hex.EncodeToString(m.Hash), hex.EncodeToString(m.CombSig))
+		return
+	}
+
+	ordSnapshot.RLock()
+	_, ok := ordSnapshot.m[m.BlockId]
+	ordSnapshot.RUnlock()
+
+	if !ok {
+		// It is common that some validators have not seen this message.
+		// Consensus requires only 2f+1 servers, in which f of them may
+		// not receive the message in the previous phase.
+		log.Debugf("%v : block %v not stored in ordSnapshot (size of %v)", rpyPhase[OPB], m.BlockId, len(ordSnapshot.m))
+
+		if encoder == nil {
+			cmtSnapshot.Lock()
+			cmtSnapshot.m[m.BlockId] = &blockSnapshot{
+				hash:    m.Hash,
+				entries: m.Entries,
+				tSig:    m.CombSig,
+				booth:   m.Booth,
+			}
+			cmtSnapshot.Unlock()
+		}
+		return
+	} else {
+		log.Debugf("%s | ordSnapshot fetched for BlockId: %d", rpyPhase[OPB], m.BlockId)
+	}
+
+	cmtSnapshot.Lock()
+	if _, ok := cmtSnapshot.m[m.BlockId]; !ok {
+
+		valiOrdJobStack.Lock()
+		if s, ok := valiOrdJobStack.s[m.BlockId]; !ok {
+			s := make(chan int, 1)
+			valiOrdJobStack.s[m.BlockId] = s
+			valiOrdJobStack.Unlock()
+			<-s
+		} else {
+			valiOrdJobStack.Unlock()
+			<-s
+		}
+	}
+	cmtSnapshot.m[m.BlockId].tSig = m.CombSig
+	cmtSnapshot.Unlock()
+
+	log.Debugf("block %d ordered", m.BlockId)
+
+	fmt.Println("Validator", ServerID, "ordered block", m.BlockId)
+
+	vgInst.Done()
 }
 
 func validatingCAEntry(m *ProposerCPAEntry, encoder *gob.Encoder) {

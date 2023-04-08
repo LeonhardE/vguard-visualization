@@ -37,7 +37,7 @@ func runAsOrderPhaseProposerVisual(proposerId ServerId) {
 	wg.Add(NOP)
 
 	for i := 0; i < NOP; i++ {
-		go acceptConns(proposerId, &wg, i)
+		go acceptConnsVisual(proposerId, &wg, i)
 	}
 
 	wg.Wait()
@@ -48,7 +48,7 @@ func runAsOrderPhaseProposerVisual(proposerId ServerId) {
 	txGenerator(MsgSize)
 
 	for i := 0; i < NumOfValidators; i++ {
-		go startOrderingPhaseA(i)
+		go startOrderingPhaseAVisual(i)
 	}
 
 	// go startConsensusPhaseA()
@@ -110,6 +110,55 @@ func acceptConns(leaderId ServerId, wg *sync.WaitGroup, phase int) {
 	}
 }
 
+func acceptConnsVisual(leaderId ServerId, wg *sync.WaitGroup, phase int) {
+	addr, err := net.ResolveTCPAddr("tcp4", ServerList[leaderId].Ip+":"+ServerList[leaderId].Ports[phase])
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	listener, err := net.ListenTCP("tcp4", addr)
+
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	defer closeTCPListener(listener, phase)
+	log.Infof("%s | listener is up at %s", cmdPhase[phase], listener.Addr().String())
+
+	connected := 0
+	for {
+		conn, err := listener.AcceptTCP()
+		if err != nil {
+			log.Errorf("%s listener err: %v", cmdPhase[phase], err)
+			return
+		}
+
+		sid, err := connRegistration(*conn, phase)
+		if err != nil {
+			log.Errorf("server registration err: %v", err)
+			return
+		}
+
+		switch phase {
+		case OPA:
+			go handleOPAConns(conn, sid)
+		case OPB:
+			go handleOPBConnsVisual(conn, sid)
+		case CPA:
+			go handleCPAConns(conn, sid)
+		case CPB:
+			go handleCPBConns(conn, sid)
+		}
+
+		connected++
+		if connected == NumOfConn-1 {
+			log.Debugf("%s listener | all %d expected servers connected", cmdPhase[phase], connected)
+			wg.Done()
+			//break
+		}
+	}
+}
+
 func handleOPAConns(sConn *net.TCPConn, sid ServerId) {
 	//
 	//
@@ -121,6 +170,23 @@ func handleOPBConns(sConn *net.TCPConn, sid ServerId) {
 
 		if err := concierge.n[OPB][sid].dec.Decode(&m); err == nil {
 			go asyncHandleOBReply(&m, sid)
+		} else if err == io.EOF {
+			log.Errorf("%s | server %v closed connection | err: %v", cmdPhase[OPB], sid, err)
+			break
+		} else {
+			log.Errorf("%s | gob decode Err: %v | conn with ser: %v | remoteAddr: %v",
+				cmdPhase[OPB], err, sid, (*sConn).RemoteAddr())
+			continue
+		}
+	}
+}
+
+func handleOPBConnsVisual(sConn *net.TCPConn, sid ServerId) {
+	for {
+		var m ValidatorOPAReply
+
+		if err := concierge.n[OPB][sid].dec.Decode(&m); err == nil {
+			go asyncHandleOBReplyVisual(&m, sid)
 		} else if err == io.EOF {
 			log.Errorf("%s | server %v closed connection | err: %v", cmdPhase[OPB], sid, err)
 			break

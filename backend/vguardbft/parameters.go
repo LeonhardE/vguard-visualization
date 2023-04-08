@@ -70,6 +70,8 @@ type ServerInfo struct {
 var ServerList []ServerInfo
 var Quorum int
 
+var proposerID ServerId // added for visualization config
+
 var serverIdLookup = struct {
 	sync.RWMutex
 	m map[string]ServerId
@@ -125,7 +127,7 @@ func loadCmdParameters() {
 	flag.IntVar(&Delay, "d", 0, "network delay")
 	flag.BoolVar(&PlainStorage, "s", false, "naive storage")
 	flag.BoolVar(&GC, "gc", false, "garbage collection")
-	flag.IntVar(&Role, "r", PROPOSER, "0 : Proposer | 1 : Validator | 2 : For Visualization")
+	flag.IntVar(&Role, "r", PROPOSER, "0 : Proposer | 1 : Validator | 2 : For OP Visualization | 3 : For CP Visualization")
 	flag.BoolVar(&PerfMetres, "pm", true, "enabling performance metres")
 	flag.Int64Var(&LatMetreInterval, "lm", 100, "latency measurement sample interval")
 	flag.IntVar(&YieldCycle, "yc", 10, "yield sending after # cycles")

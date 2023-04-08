@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/gob"
 	"errors"
+	"fmt"
 	"io"
 	"net"
 	"time"
@@ -22,6 +23,23 @@ func runAsValidator() {
 
 	go receivingOADialMessages(proposerLookup.m[OPA])
 	go receivingOBDialMessages(proposerLookup.m[OPB])
+	go receivingCADialMessages(proposerLookup.m[CPA])
+	go receivingCBDialMessages(proposerLookup.m[CPB])
+}
+
+func runAsValidatorVisual() {
+	defer proposerLookup.RUnlock()
+	proposerLookup.RLock()
+
+	registerDialConn(proposerLookup.m[OPA], OPA, ListenerPortOPA)
+	registerDialConn(proposerLookup.m[OPB], OPB, ListenerPortOPB)
+	registerDialConn(proposerLookup.m[CPA], CPA, ListenerPortOCA)
+	registerDialConn(proposerLookup.m[CPB], CPB, ListenerPortOCB)
+
+	log.Debugf("... registerDialConn completed ...")
+
+	go receivingOADialMessagesVisual(proposerLookup.m[OPA])
+	go receivingOBDialMessagesVisual(proposerLookup.m[OPB])
 	go receivingCADialMessages(proposerLookup.m[CPA])
 	go receivingCBDialMessages(proposerLookup.m[CPB])
 }
@@ -130,6 +148,35 @@ func receivingOADialMessages(coordinatorId ServerId) {
 	}
 }
 
+func receivingOADialMessagesVisual(coordinatorId ServerId) {
+	dialogMgr.RLock()
+	postPhaseDialogInfo := dialogMgr.conns[OPA][coordinatorId]
+	orderPhaseDialogInfo := dialogMgr.conns[OPB][coordinatorId]
+	dialogMgr.RUnlock()
+
+	for {
+		var m ProposerOPAEntry
+
+		err := postPhaseDialogInfo.dec.Decode(&m)
+
+		if err == io.EOF {
+			log.Errorf("%v | coordinator closed connection | err: %v", time.Now(), err)
+			log.Warnf("Lost connection with the proposer (S%v); quitting program", postPhaseDialogInfo.SID)
+			// vgInst.Done()
+			break
+		}
+
+		if err != nil {
+			log.Errorf("Gob Decode Err: %v", err)
+			continue
+		}
+
+		fmt.Println("OPA Validator", ServerID, "received OPA message.")
+
+		go validatingOAEntryVisual(&m, orderPhaseDialogInfo.enc)
+	}
+}
+
 func receivingOBDialMessages(coordinatorId ServerId) {
 	dialogMgr.RLock()
 	orderPhaseDialogInfo := dialogMgr.conns[OPB][coordinatorId]
@@ -152,6 +199,33 @@ func receivingOBDialMessages(coordinatorId ServerId) {
 		}
 
 		go validatingOBEntry(&m, commitPhaseDialogInfo.enc)
+	}
+}
+
+func receivingOBDialMessagesVisual(coordinatorId ServerId) {
+	dialogMgr.RLock()
+	orderPhaseDialogInfo := dialogMgr.conns[OPB][coordinatorId]
+	commitPhaseDialogInfo := dialogMgr.conns[CPA][coordinatorId]
+	dialogMgr.RUnlock()
+
+	for {
+		var m ProposerOPBEntry
+
+		err := orderPhaseDialogInfo.dec.Decode(&m)
+
+		if err == io.EOF {
+			log.Errorf("%s | coordinator closed connection | err: %v", rpyPhase[OPB], err)
+			break
+		}
+
+		if err != nil {
+			log.Errorf("%s | gob Decode Err: %v", rpyPhase[OPB], err)
+			continue
+		}
+
+		fmt.Println("OPB Validator", ServerID, "received OPB message.")
+
+		go validatingOBEntryVisual(&m, commitPhaseDialogInfo.enc)
 	}
 }
 

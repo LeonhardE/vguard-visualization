@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/gob"
 	"errors"
+	"fmt"
 	"net"
 	"sync"
 )
@@ -89,23 +90,43 @@ func takingInitRoles(proposer ServerId) {
 }
 
 func takingInitRolesVisual(proposer ServerId) {
-	if proposer == ServerId(ServerID) {
-		go runAsOrderPhaseProposerVisual(proposer)
-	} else {
-		proposerLookup.Lock()
-		for i := 0; i < NOP; i++ {
-			proposerLookup.m[Phase(i)] = proposer
-		}
-		proposerLookup.Unlock()
+	if Role == 2 {
+		// Start Ordering Phase Visualization
+		if proposer == ServerId(ServerID) {
+			fmt.Println("Server", ServerID, "is proposer")
 
-		go runAsValidator()
+			go runAsOrderPhaseProposerVisual(proposer)
+
+		} else {
+			fmt.Println("Server", ServerID, "is validator, proposer", proposer)
+
+			proposerLookup.Lock()
+			for i := 0; i < NOP; i++ {
+				proposerLookup.m[Phase(i)] = proposer
+			}
+			proposerLookup.Unlock()
+	
+			go runAsValidatorVisual()
+		}
+
+	}else if Role == 3{
+		// Start Consensus Phase Visualization
+
 	}
 }
 
 func start() {
 	if Role == 0 || Role == 1 {
+
 		takingInitRoles(ServerId(0))
+
+	} else if Role == 2 || Role == 3 {
+
+		takingInitRolesVisual(proposerID)
+
 	} else {
-		takingInitRolesVisual(ServerId(0))
+
+		panic(errors.New("Illegal Role!"))
+
 	}
 }

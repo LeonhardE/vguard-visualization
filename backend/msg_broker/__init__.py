@@ -1,5 +1,11 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from common import prepare_vguard
+from msg_broker.vguard_manager import VGuardManager
+
+# prepare_vguard()
+# manager = VGuardManager()
+# manager.start_order_phase()
 
 msg_broker_app = Flask(__name__)
 CORS(msg_broker_app)

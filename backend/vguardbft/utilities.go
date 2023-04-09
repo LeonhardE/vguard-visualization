@@ -35,6 +35,22 @@ func txGenerator(len int) {
 	log.Infof("%d request queue(s) loaded with %d requests of size %d bytes", NumOfValidators, MsgLoad, MsgSize)
 }
 
+func setMessageVisual(msg string){
+	for i := 0; i < NumOfValidators; i++ {
+		q := make(chan *Proposal, MaxQueue)
+
+		for i := int64(0); i < MsgLoad; i++ {
+			q <- &Proposal{
+				Timestamp:   time.Now().UnixMicro(),
+				Transaction: []byte(msg),
+			}
+		}
+		requestQueue = append(requestQueue, q)
+	}
+
+	log.Infof("%d request queue(s) loaded with %s", NumOfValidators, msg)
+}
+
 func serialization(m interface{}) ([]byte, error) {
 	return json.Marshal(m)
 }

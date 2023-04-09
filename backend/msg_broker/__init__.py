@@ -3,9 +3,9 @@ from flask_cors import CORS
 from common import prepare_vguard
 from msg_broker.vguard_manager import VGuardManager
 
-# prepare_vguard()
+prepare_vguard()
 # manager = VGuardManager()
-# manager.start_order_phase()
+# manager.start_order_phase(booth=[3, 4, 5, 6], blockid=1, msg='testmsg')
 
 msg_broker_app = Flask(__name__)
 CORS(msg_broker_app)

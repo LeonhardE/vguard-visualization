@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"encoding/gob"
 	"errors"
 	"fmt"
 	"net"
+	"os"
 	"sync"
 )
 
@@ -42,6 +44,8 @@ type ConnDock struct {
 	dec  *gob.Decoder
 }
 
+var stdinScanner *bufio.Scanner
+
 func connRegistration(sconn net.TCPConn, phase int) (ServerId, error) {
 
 	concierge.mu.Lock()
@@ -75,6 +79,11 @@ func dialSendBack(m interface{}, encoder *gob.Encoder, phaseNumber int) {
 	}
 }
 
+func readLineFromStdin() string {
+	stdinScanner.Scan()
+	return stdinScanner.Text()
+}
+
 func takingInitRoles(proposer ServerId) {
 	if proposer == ServerId(ServerID) {
 		go runAsProposer(proposer)
@@ -90,15 +99,18 @@ func takingInitRoles(proposer ServerId) {
 }
 
 func takingInitRolesVisual(proposer ServerId) {
+	stdinScanner = bufio.NewScanner(os.Stdin)
+
 	if Role == 2 {
 		// Start Ordering Phase Visualization
 		if proposer == ServerId(ServerID) {
-			fmt.Println("Server", ServerID, "is proposer")
+
+			fmt.Println("Visualization starts, Server", ServerID, "as proposer.")
 
 			go runAsOrderPhaseProposerVisual(proposer)
 
 		} else {
-			fmt.Println("Server", ServerID, "is validator, proposer", proposer)
+			fmt.Println("Visualization starts, Server", ServerID, "as validator.")
 
 			proposerLookup.Lock()
 			for i := 0; i < NOP; i++ {

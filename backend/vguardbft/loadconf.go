@@ -28,17 +28,9 @@ func parseConf(numOfServers int) {
 		log.Errorf("close fileServer failed | err: %v\n", err)
 	}
 
-	if Role == 0 || Role == 1 { // normal execution
-		//first line is explanation
-		if len(fileRows) != numOfServers + 1 {
-			log.Errorf("Going to panic | fileRows: %v | n: %v", len(fileRows), numOfServers)
-			panic(errors.New("number of servers in config file does not match with provided $n$"))
-		}
-	} else if Role == 2 || Role == 3 { // for visualization
-		if len(fileRows) != numOfServers + 1 {
-			log.Errorf("Going to panic | fileRows: %v | n: %v", len(fileRows), numOfServers)
-			panic(errors.New("number of servers in config file does not match with provided $n$"))
-		}
+	if len(fileRows) != numOfServers + 1 {
+		log.Errorf("Going to panic | fileRows: %v | n: %v", len(fileRows), numOfServers)
+		panic(errors.New("number of servers in config file does not match with provided $n$"))
 	}
 
 	for i := 0; i < len(fileRows); i++ {

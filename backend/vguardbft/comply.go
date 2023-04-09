@@ -130,8 +130,8 @@ func validatingOAEntryVisual(m *ProposerOPAEntry, encoder *gob.Encoder) {
 
 	log.Debugf("%s | msg: %v; ps: %v", rpyPhase[OPA], m.BlockId, hex.EncodeToString(sig))
 
-	fmt.Println("OPA send back, Validator", ServerID)
-
+	readLineFromStdin()
+	fmt.Println("OPA send back")
 	dialSendBack(postReply, encoder, OPA)
 }
 

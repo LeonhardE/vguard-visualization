@@ -166,7 +166,7 @@ func startOrderingPhaseAVisual(i int) {
 			return
 		}
 
-		fmt.Println("StartOPA: request timestamp:", m.Timestamp, " tx:", m.Transaction)
+		// fmt.Println("StartOPA: request timestamp:", m.Timestamp, " tx:", m.Transaction)
 
 		entry := Entry{
 			TimeStamp: m.Timestamp,
@@ -229,8 +229,11 @@ func startOrderingPhaseAVisual(i int) {
 		//clear shuffle variables
 		shuffle.counter = 0
 		shuffle.entries = make(map[int]Entry)
-
-		fmt.Println("OPA Broadcast to booth, Entry: ", postEntry, " Booth: ", booMgr.b[getBoothID()])
+		
+		// wait for front end
+		readLineFromStdin()
+		fmt.Println("OPA Broadcast to booth, blockId:", postEntry.BlockId, "hash:", hex.EncodeToString(postEntry.Hash))
+		
 		broadcastToBooth(postEntry, OPA, orderingBoothID)
 
 		if YieldCycle != 0 {
@@ -381,8 +384,8 @@ func asyncHandleOBReplyVisual(m *ValidatorOPAReply, sid ServerId) {
 		Hash: blockOrderFrag.hash,
 	}
 
-	vgrec.Add(m.BlockId)
 	fmt.Println("OP Block ", m.BlockId, " added to order log, block content ", cmtSnapshot.m[m.BlockId])
+	vgrec.Add(m.BlockId)
 
 	if PerfMetres {
 		timeNow := time.Now().UTC().String()

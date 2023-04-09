@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"io"
 	"net"
 	"sync"
@@ -45,7 +47,21 @@ func runAsOrderPhaseProposerVisual(proposerId ServerId) {
 
 	prepareBooths(NumOfConn, BoothSize)
 
-	txGenerator(MsgSize)
+	str := readLineFromStdin()
+
+	type MsgOPInit struct {
+		BlockId int `json:"blockId"`
+		Tx string `json:"tx"`
+	}
+
+	msg := MsgOPInit{}
+	json.Unmarshal([]byte(str), &msg)
+
+	fmt.Printf("{\"State\":\"Initialized\"}\n")
+
+	// txGenerator(MsgSize)
+	setLogIndex(int64(msg.BlockId))
+	setMessageVisual(msg.Tx)
 
 	for i := 0; i < NumOfValidators; i++ {
 		go startOrderingPhaseAVisual(i)

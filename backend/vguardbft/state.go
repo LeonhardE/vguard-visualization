@@ -47,6 +47,10 @@ func getLogIndex() int64 {
 	return atomic.LoadInt64(&state.logIndex)
 }
 
+func setLogIndex(index int64) {
+	atomic.StoreInt64(&state.logIndex, index)
+}
+
 //
 //func incrementOrderIndex() int64 {
 //	return atomic.AddInt64(&state.orderIndex, 1)

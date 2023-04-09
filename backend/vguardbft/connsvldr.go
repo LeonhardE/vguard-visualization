@@ -171,8 +171,8 @@ func receivingOADialMessagesVisual(coordinatorId ServerId) {
 			continue
 		}
 
-		fmt.Println("OPA Validator", ServerID, "received OPA message.")
-
+		readLineFromStdin()
+		fmt.Println("OPA Validator", ServerID, "received OPA message. Send to Validate.")
 		go validatingOAEntryVisual(&m, orderPhaseDialogInfo.enc)
 	}
 }

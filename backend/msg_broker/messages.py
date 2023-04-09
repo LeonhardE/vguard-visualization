@@ -1,5 +1,6 @@
 import json
 
+
 class BrokerMessage(object):
     def __init__(self):
         self.values = {}

@@ -26,6 +26,30 @@ export default function Ordering({ initialTarget, onTargetChange, onTargetApply 
         scrollToBottom()
     }, [level]);
 
+    const ReadMore = ({ children }) => {
+        const text = children;
+        const [isReadMore, setIsReadMore] = useState(true);
+        const toggleReadMore = () => {
+            setIsReadMore(!isReadMore);
+        };
+        return (
+            <div style={{ whitespace: "pre-wrap" }}>
+                <p className="multiline">
+                    {isReadMore ? text[0].slice(0, 25).concat("...") : text[0]}
+                    {isReadMore ? "" : <br />}
+                    {isReadMore ? "" : text[2]}
+                    &nbsp;&nbsp;&nbsp;<br />
+                    <span
+                        style={{ color: "blue" }}
+                        onClick={toggleReadMore}
+                        className="read-or-hide">
+                        {isReadMore ? "read more" : "show less"}
+                    </span>
+                </p>
+            </div>
+        );
+    };
+
 
     return (
         <ThemeProvider theme={lightTheme}>
@@ -150,8 +174,12 @@ export default function Ordering({ initialTarget, onTargetChange, onTargetApply 
                     <Grid item xs={3}
                         // display = {level > 1 ? "none" : "block"}
                         className={level >= 1 ? "showmsg" : "hiddenmsg"}>
-                        <Message>Send PreOrder Messages to all Validators <br />
-                            (Pre-Order, Bi, hBi, Vo, hVo, i, σVp)</Message>
+                        <Message>
+                            <ReadMore>
+                                Send PreOrder Messages to all Validators <br />
+                                (Pre-Order, Bi, hBi, Vo, hVo, i, σVp)
+                            </ReadMore>
+                        </Message>
                     </Grid>
                     <Grid item xs={3}
                         // display = {level > 1 ? "none" : "block"}

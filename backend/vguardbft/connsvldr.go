@@ -40,8 +40,8 @@ func runAsValidatorVisual() {
 
 	go receivingOADialMessagesVisual(proposerLookup.m[OPA])
 	go receivingOBDialMessagesVisual(proposerLookup.m[OPB])
-	go receivingCADialMessages(proposerLookup.m[CPA])
-	go receivingCBDialMessages(proposerLookup.m[CPB])
+	go receivingCADialMessagesVisual(proposerLookup.m[CPA])
+	go receivingCBDialMessagesVisual(proposerLookup.m[CPB])
 }
 
 func registerDialConn(coordinatorId ServerId, phaseNumber Phase, portNumber int) {
@@ -170,9 +170,11 @@ func receivingOADialMessagesVisual(coordinatorId ServerId) {
 			log.Errorf("Gob Decode Err: %v", err)
 			continue
 		}
-
+		
+		// wait for front end
 		readLineFromStdin()
-		fmt.Println("OPA Validator", ServerID, "received OPA message. Send to Validate.")
+		fmt.Printf("{\"state\":\"OPA_validate\"}\n")
+
 		go validatingOAEntryVisual(&m, orderPhaseDialogInfo.enc)
 	}
 }
@@ -223,8 +225,7 @@ func receivingOBDialMessagesVisual(coordinatorId ServerId) {
 			continue
 		}
 
-		fmt.Println("OPB Validator", ServerID, "received OPB message.")
-
+		// wait for frontend happens later
 		go validatingOBEntryVisual(&m, commitPhaseDialogInfo.enc)
 	}
 }
@@ -253,6 +254,30 @@ func receivingCADialMessages(coordinatorId ServerId) {
 	}
 }
 
+func receivingCADialMessagesVisual(coordinatorId ServerId) {
+	dialogMgr.RLock()
+	CADialogInfo := dialogMgr.conns[CPA][coordinatorId]
+	dialogMgr.RUnlock()
+
+	for {
+		var m ProposerCPAEntry
+
+		err := CADialogInfo.dec.Decode(&m)
+
+		if err == io.EOF {
+			log.Errorf("%v: Coordinator closed connection | err: %v", rpyPhase[CPA], err)
+			break
+		}
+
+		if err != nil {
+			log.Errorf("%v: Gob Decode Err: %v", rpyPhase[CPA], err)
+			continue
+		}
+
+		go validatingCAEntryVisual(&m, CADialogInfo.enc)
+	}
+}
+
 func receivingCBDialMessages(coordinatorId ServerId) {
 	dialogMgr.RLock()
 	CBDialogInfo := dialogMgr.conns[CPB][coordinatorId]
@@ -274,5 +299,29 @@ func receivingCBDialMessages(coordinatorId ServerId) {
 		}
 
 		go validatingCBEntry(&m, CBDialogInfo.enc)
+	}
+}
+
+func receivingCBDialMessagesVisual(coordinatorId ServerId) {
+	dialogMgr.RLock()
+	CBDialogInfo := dialogMgr.conns[CPB][coordinatorId]
+	dialogMgr.RUnlock()
+
+	for {
+		var m ProposerCPBEntry
+
+		err := CBDialogInfo.dec.Decode(&m)
+
+		if err == io.EOF {
+			log.Errorf("%v: Coordinator closed connection | err: %v", rpyPhase[CPB], err)
+			break
+		}
+
+		if err != nil {
+			log.Errorf("%v: Gob Decode Err: %v", rpyPhase[CPB], err)
+			continue
+		}
+
+		go validatingCBEntryVisual(&m, CBDialogInfo.enc)
 	}
 }

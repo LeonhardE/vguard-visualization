@@ -20,12 +20,18 @@ func setLogger() {
 		if e != nil {
 			log.Fatal(e)
 		}
-		log.Infof(">> old logs removed at " + fmt.Sprintf("./logs/s%d", ServerID))
+
+		if Role == 0 || Role == 1{
+			log.Infof(">> old logs removed at " + fmt.Sprintf("./logs/s%d", ServerID))
+		}
 
 		if err := os.Mkdir(fmt.Sprintf("./logs/s%d", ServerID), os.ModePerm); err != nil {
 			log.Error(err)
 		}
-		log.Infof(">> new log folder created at " + fmt.Sprintf("./logs/s%d", ServerID))
+		
+		if Role == 0 || Role == 1{
+			log.Infof(">> new log folder created at " + fmt.Sprintf("./logs/s%d", ServerID))
+		}
 
 		log.Formatter = &logrus.TextFormatter{
 			ForceColors:               false,

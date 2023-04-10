@@ -105,12 +105,12 @@ func takingInitRolesVisual(proposer ServerId) {
 		// Start Ordering Phase Visualization
 		if proposer == ServerId(ServerID) {
 
-			fmt.Println("Visualization starts, Server", ServerID, "as proposer.")
+			fmt.Println("Visualization starts, Server", ServerID, "as OP proposer.")
 
 			go runAsOrderPhaseProposerVisual(proposer)
 
 		} else {
-			fmt.Println("Visualization starts, Server", ServerID, "as validator.")
+			fmt.Println("Visualization starts, Server", ServerID, "as OP validator.")
 
 			proposerLookup.Lock()
 			for i := 0; i < NOP; i++ {
@@ -123,7 +123,23 @@ func takingInitRolesVisual(proposer ServerId) {
 
 	}else if Role == 3{
 		// Start Consensus Phase Visualization
+		if proposer == ServerId(ServerID) {
 
+			fmt.Println("Visualization starts, Server", ServerID, "as CP proposer.")
+
+			go runAsConsensusPhaseProposerVisual(proposer)
+
+		} else {
+			fmt.Println("Visualization starts, Server", ServerID, "as CP validator.")
+
+			proposerLookup.Lock()
+			for i := 0; i < NOP; i++ {
+				proposerLookup.m[Phase(i)] = proposer
+			}
+			proposerLookup.Unlock()
+			
+			go runAsValidatorVisual()
+		}
 	}
 }
 

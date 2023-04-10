@@ -232,7 +232,7 @@ func startOrderingPhaseAVisual(i int) {
 		
 		// wait for front end
 		readLineFromStdin()
-		fmt.Println("OPA Broadcast to booth, blockId:", postEntry.BlockId, "hash:", hex.EncodeToString(postEntry.Hash))
+		fmt.Printf("{\"state\":\"OPA_broadcast\", \"blockId\":%d, \"timestamp\":%d, \"hash\":\"%s\"}\n", postEntry.BlockId, entry.TimeStamp, hex.EncodeToString(postEntry.Hash))
 		
 		broadcastToBooth(postEntry, OPA, orderingBoothID)
 
@@ -384,7 +384,10 @@ func asyncHandleOBReplyVisual(m *ValidatorOPAReply, sid ServerId) {
 		Hash: blockOrderFrag.hash,
 	}
 
-	fmt.Println("OP Block ", m.BlockId, " added to order log, block content ", cmtSnapshot.m[m.BlockId])
+	// wait for front end
+	readLineFromStdin()
+	fmt.Printf("{\"state\":\"OP_proposer_ordered\", \"blockId\":%d, \"hash\":\"%s\", \"tSig\":\"%s\"}\n", 
+				m.BlockId, hex.EncodeToString(cmtSnapshot.m[m.BlockId].hash), hex.EncodeToString(thresholdSig))
 	vgrec.Add(m.BlockId)
 
 	if PerfMetres {
@@ -408,6 +411,6 @@ func asyncHandleOBReplyVisual(m *ValidatorOPAReply, sid ServerId) {
 
 	broadcastToBooth(orderEntry, OPB, currBooth.ID)
 
-	fmt.Println("Terminating current VGuard instance")
+	// fmt.Println("Terminating current VGuard instance")
 	vgInst.Done()
 }

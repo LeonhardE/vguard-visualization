@@ -77,3 +77,21 @@ func storeVgTx(consInstID int) {
 		}
 	}
 }
+
+func storeVgTxVisual(consInstID int) {
+	vgTxData.RLock()
+	ordBoo := vgTxData.tx[consInstID]
+	cmtBoo := vgTxData.boo[consInstID]
+	vgTxData.RUnlock()
+
+	log.Infof("VGTX %d in Cmt Booth: %v | total # of tx: %d", consInstID, cmtBoo.Indices, vgrec.GetLastIdx()*BatchSize)
+
+	for key, chunk := range ordBoo { //map<boo, [][]entries>
+		log.Infof("ordering booth: %v | len(ordBoo[%v]): %v", key, key, len(chunk))
+		for _, entries := range chunk {
+			for _, e := range entries {
+				log.Infof("ts: %v; tx: %v", e.TimeStamp, string(e.Tx))
+			}
+		}
+	}
+}

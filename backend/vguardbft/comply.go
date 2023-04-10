@@ -130,8 +130,10 @@ func validatingOAEntryVisual(m *ProposerOPAEntry, encoder *gob.Encoder) {
 
 	log.Debugf("%s | msg: %v; ps: %v", rpyPhase[OPA], m.BlockId, hex.EncodeToString(sig))
 
+	// wait for front end
 	readLineFromStdin()
-	fmt.Println("OPA send back")
+	fmt.Printf("{\"state\":\"OPA_reply\"}\n")
+
 	dialSendBack(postReply, encoder, OPA)
 }
 
@@ -197,8 +199,15 @@ func validatingOBEntry(m *ProposerOPBEntry, encoder *gob.Encoder) {
 func validatingOBEntryVisual(m *ProposerOPBEntry, encoder *gob.Encoder) {
 	if encoder != nil {
 		log.Debugf("%s | ProposerOPBEntry received (BlockID: %d) @ %v", rpyPhase[OPB], m.BlockId, time.Now().UTC().String())
+		
+		//wait for front end
+		readLineFromStdin()
+		fmt.Printf("{\"state\":\"OPB_validate\", \"blockId\":%d}\n", m.BlockId)
+
 	} else {
 		log.Debugf("%s | Sync up -> ProposerOPBEntry received (BlockID: %d) @ %v", rpyPhase[CPA], m.BlockId, time.Now().UTC().String())
+
+		fmt.Printf("{\"state\":\"CPA_sync_up\", \"blockId\":%d}\n", m.BlockId)
 	}
 
 	err := PenVerify(m.Hash, m.CombSig, PublicPoly)
@@ -255,7 +264,9 @@ func validatingOBEntryVisual(m *ProposerOPBEntry, encoder *gob.Encoder) {
 
 	log.Debugf("block %d ordered", m.BlockId)
 
-	fmt.Println("Validator", ServerID, "ordered block", m.BlockId)
+	//wait for front end
+	readLineFromStdin()
+	fmt.Printf("{\"state\":\"OPB_validator_ordered\", \"blockId\":%d}\n", m.BlockId)
 
 	vgInst.Done()
 }
@@ -349,6 +360,105 @@ func validatingCAEntry(m *ProposerCPAEntry, encoder *gob.Encoder) {
 	}
 }
 
+func validatingCAEntryVisual(m *ProposerCPAEntry, encoder *gob.Encoder) {
+	// wait for front end
+	readLineFromStdin()
+
+	log.Debugf("%s | ProposerCPAEntry received (RangeId: %d) @ %v", rpyPhase[CPA], m.ConsInstID, time.Now().UTC().String())
+
+	vgTxData.Lock()
+	vgTxData.tx[m.ConsInstID] = make(map[string][][]Entry)
+	vgTxData.Unlock()
+
+	if m.PrevOPBEntries != nil {
+		log.Debugf("%s | %v| len(PrevOPBEntries): %v", rpyPhase[CPA], m.ConsInstID, len(m.PrevOPBEntries))
+
+		for _, OPBEntry := range m.PrevOPBEntries {
+			// will print a line in this function
+			validatingOBEntryVisual(&OPBEntry, nil)
+		}
+	}
+
+	// CPA message to front end
+	fmt.Printf("{\"state\":\"CPA_validate\", \"hash\":\"%s\"}\n", hex.EncodeToString(m.TotalHash))
+
+	if m.BIDs == nil {
+		log.Errorf("%s | ConsInstID: %v | Empty BIDs shouldn't have been transmitted", rpyPhase[CPA], m.ConsInstID)
+		return
+	}
+
+	for _, blockID := range m.BIDs {
+		cmtSnapshot.RLock()
+		snapshot, ok := cmtSnapshot.m[blockID]
+		cmtSnapshot.RUnlock()
+
+		if !ok {
+			log.Infof("%v | cmtSnapshot.h[%v] not found in cache|", rpyPhase[CPA], blockID)
+			continue
+		}
+
+		if !bytes.Equal(snapshot.hash, m.RangeHash[blockID]) {
+			log.Errorf(" block hashes don't match; ConsInstID:%d mapsize:%d; received m.RangeHash[%v]: %v | local: %v",
+				m.ConsInstID, len(m.RangeHash), blockID, m.RangeHash[blockID], snapshot.hash)
+			return
+		}
+
+		var blockEntries []Entry
+
+		for _, entry := range snapshot.entries {
+			blockEntries = append(blockEntries, entry)
+		}
+
+		boo, err := snapshot.booth.String()
+		if err != nil {
+			log.Error(err)
+			return
+		}
+
+		vgTxData.Lock()
+		if _, ok := vgTxData.tx[m.ConsInstID][boo]; ok {
+			vgTxData.tx[m.ConsInstID][boo] = append(vgTxData.tx[m.ConsInstID][boo], blockEntries)
+		} else {
+			vgTxData.tx[m.ConsInstID][boo] = [][]Entry{blockEntries}
+		}
+
+		vgTxData.boo[m.ConsInstID] = m.Booth
+		vgTxData.Unlock()
+	}
+
+	partialSig, err := PenSign(m.TotalHash)
+	if err != nil {
+		log.Errorf("PenSign failed: %v", err)
+		return
+	}
+
+	replyCA := ValidatorCPAReply{
+		ConsInstID: m.ConsInstID,
+		ParSig:     partialSig,
+	}
+
+	// wait for front end
+	readLineFromStdin()
+	fmt.Printf("{\"state\":\"CPA_reply\", \"hash\":\"%s\"}\n", hex.EncodeToString(m.TotalHash))
+
+	dialSendBack(replyCA, encoder, CPA)
+
+	vgTxMeta.Lock()
+	vgTxMeta.hash[m.ConsInstID] = m.TotalHash
+	vgTxMeta.Unlock()
+
+	valiConsJobStack.Lock()
+	if s, ok := valiConsJobStack.s[m.ConsInstID]; !ok {
+		s := make(chan int, 1)
+		valiConsJobStack.s[m.ConsInstID] = s
+		valiConsJobStack.Unlock()
+		s <- 1
+	} else {
+		valiConsJobStack.Unlock()
+		s <- 1
+	}
+}
+
 func validatingCBEntry(m *ProposerCPBEntry, encoder *gob.Encoder) {
 
 	vgTxMeta.RLock()
@@ -378,6 +488,53 @@ func validatingCBEntry(m *ProposerCPBEntry, encoder *gob.Encoder) {
 	}
 
 	storeVgTx(m.ConsInstID)
+
+	//replyCB := ValidatorCPBReply{
+	//	RangeId: m.RangeId,
+	//	Done:    true,
+	//}
+	//
+	//dialSendBack(replyCB, encoder, CPB)
+}
+
+func validatingCBEntryVisual(m *ProposerCPBEntry, encoder *gob.Encoder) {
+	// wait for front end
+	readLineFromStdin()
+	fmt.Printf("{\"state\":\"CPB_validate\", \"recoveredSig\":\"%s\", \"hash\":\"%s\"}\n", hex.EncodeToString(m.ComSig), hex.EncodeToString(m.Hash))
+
+	vgTxMeta.RLock()
+	_, ok := vgTxMeta.hash[m.ConsInstID]
+	vgTxMeta.RUnlock()
+
+	if !ok {
+		log.Debugf("%v | vgTxMeta.hash[m.RangeId:%v] not stored in cache|", rpyPhase[CPB], m.ConsInstID)
+	}
+
+	// Wait for prior job to be finished first
+	valiConsJobStack.Lock()
+	if s, ok := valiConsJobStack.s[m.ConsInstID]; !ok {
+		s := make(chan int, 1)
+		valiConsJobStack.s[m.ConsInstID] = s
+		valiConsJobStack.Unlock()
+		<-s
+	} else {
+		valiConsJobStack.Unlock()
+		<-s
+	}
+
+	err := PenVerify(m.Hash, m.ComSig, PublicPoly)
+	if err != nil {
+		log.Errorf("%v | PenVerify failed; err: %v", rpyPhase[CPB], err)
+		return
+	}
+
+	// wait for front end
+	readLineFromStdin()
+	fmt.Printf("{\"state\":\"CPB_validator_committed\"}\n")
+
+	storeVgTxVisual(m.ConsInstID)
+
+	vgInst.Done()
 
 	//replyCB := ValidatorCPBReply{
 	//	RangeId: m.RangeId,

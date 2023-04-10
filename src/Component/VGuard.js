@@ -106,8 +106,8 @@ export default function VGuard() {
                         <Box
                             sx={{
                                 bgcolor: 'background.paper',
-                                width: '90%',
-                                height: '90%',
+                                width: '90vw',
+                                height: '90vh',
                                 border: 8,
                                 borderColor: 'text.primary',
                                 borderRadius: '5%'
@@ -117,7 +117,7 @@ export default function VGuard() {
                             <Button
                                 sx={{
                                     bottom: 0,
-                                    left: "95%"
+                                    left: "83vw"
                                 }}
                                 onClick={() => handleClose()}>
                                 Back
@@ -134,8 +134,8 @@ export default function VGuard() {
                         <Box
                             sx={{
                                 bgcolor: 'background.paper',
-                                width: '90%',
-                                height: '90%',
+                                width: '90vw',
+                                height: '90vh',
                                 border: 8,
                                 borderColor: 'text.primary',
                                 borderRadius: '5%'
@@ -145,7 +145,7 @@ export default function VGuard() {
                             <Button
                                 sx={{
                                     bottom: 0,
-                                    left: "95%"
+                                    left: "83vw"
                                 }}
                                 onClick={() => handleClose()}>
                                 Back

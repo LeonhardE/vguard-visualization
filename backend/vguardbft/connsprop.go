@@ -51,8 +51,8 @@ func runAsOrderPhaseProposerVisual(proposerId ServerId) {
 	str := readLineFromStdin()
 
 	type MsgOPInit struct {
-		BlockId int `json:"blockId"`
-		Tx string `json:"tx"`
+		BlockId int    `json:"blockId"`
+		Tx      string `json:"tx"`
 	}
 
 	msg := MsgOPInit{}
@@ -87,11 +87,11 @@ func runAsConsensusPhaseProposerVisual(proposerId ServerId) {
 
 	str := readLineFromStdin()
 	type MsgCPInit struct {
-		BlockId int `json:"blockId"`
-		TimeStamp int64 `json:"timestamp"`
-		Tx string `json:"tx"`
-		Hash string `json:"hash"`
-		TSig string `json:"tsig"`
+		BlockId   int    `json:"blockId"`
+		TimeStamp int64  `json:"timestamp"`
+		Tx        string `json:"tx"`
+		Hash      string `json:"hash"`
+		TSig      string `json:"tsig"`
 	}
 
 	msg := MsgCPInit{}
@@ -112,20 +112,20 @@ func runAsConsensusPhaseProposerVisual(proposerId ServerId) {
 		vgInst.Done()
 		return
 	}
-	
+
 	entries := make(map[int]Entry)
 	entries[0] = Entry{
 		TimeStamp: msg.TimeStamp,
-		Tx: []byte(msg.Tx),
+		Tx:        []byte(msg.Tx),
 	}
 
 	cmtSnapshot.Lock()
 	cmtSnapshot.m[int64(msg.BlockId)] = &blockSnapshot{
-		hash: decodedHash,
+		hash:    decodedHash,
 		entries: entries,
-		sigs: [][]byte{},
-		booth: booMgr.b[getBoothID()],
-		tSig: decodedTSig,
+		sigs:    [][]byte{},
+		booth:   booMgr.b[getBoothID()],
+		tSig:    decodedTSig,
 	}
 	cmtSnapshot.Unlock()
 

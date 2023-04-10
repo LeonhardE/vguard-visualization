@@ -8,3 +8,10 @@ class OrderLogEntry(object):
 class CommittedLogEntry(object):
     def __init__(self):
         pass
+
+
+class VGuardState(object):
+    def __init__(self):
+        pass
+
+    def 

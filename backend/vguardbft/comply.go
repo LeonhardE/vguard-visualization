@@ -79,6 +79,10 @@ func validatingOAEntry(m *ProposerOPAEntry, encoder *gob.Encoder) {
 func validatingOAEntryVisual(m *ProposerOPAEntry, encoder *gob.Encoder) {
 	log.Debugf("%s | ProposerOPBEntry received (BlockID: %d) @ %v", rpyPhase[OPA], m.BlockId, time.Now().UTC().String())
 
+	// wait for front end
+	readLineFromStdin()
+	fmt.Printf("{\"state\":\"OPA_validate\", \"hash\":\"%s\"}\n", hex.EncodeToString(m.Hash))
+
 	ordSnapshot.Lock()
 	if _, ok := ordSnapshot.m[m.BlockId]; ok {
 		ordSnapshot.Unlock()
@@ -132,7 +136,7 @@ func validatingOAEntryVisual(m *ProposerOPAEntry, encoder *gob.Encoder) {
 
 	// wait for front end
 	readLineFromStdin()
-	fmt.Printf("{\"state\":\"OPA_reply\"}\n")
+	fmt.Printf("{\"state\":\"OPA_reply\", \"sig\":\"%s\"}\n", hex.EncodeToString(sig))
 
 	dialSendBack(postReply, encoder, OPA)
 }

@@ -282,8 +282,8 @@ func startConsensusPhaseAVisual() {
 
 		// wait for front end
 		readLineFromStdin()
-		fmt.Printf("{\"state\":\"CPA_broadcast\", \"blockId\":%d, \"hash\":\"%s\"}\n", 
-						blockIDRange[0], hex.EncodeToString(totalHash))
+		fmt.Printf("{\"state\":\"CPA_broadcast\", \"blockId\":%d, \"hash\":\"%s\"}\n",
+			blockIDRange[0], hex.EncodeToString(totalHash))
 
 		broadcastToBooth(newEntryCA, CPA, commitBoothID)
 
@@ -394,7 +394,10 @@ func asyncHandleCPAReplyVisual(m *ValidatorCPAReply, sid ServerId) {
 	partialSig = append(partialSig, m.ParSig)
 
 	vgTxMeta.Lock()
-	vgTxMeta.sigs[m.ConsInstID] = partialSig
+	// vgTxMeta.sigs[m.ConsInstID] = partialSig
+
+	vgTxMeta.sigs[m.ConsInstID] = append(vgTxMeta.sigs[m.ConsInstID], m.ParSig)
+	partialSig = vgTxMeta.sigs[m.ConsInstID]
 	vgTxMeta.Unlock()
 
 	if len(partialSig) < Threshold {
@@ -422,8 +425,8 @@ func asyncHandleCPAReplyVisual(m *ValidatorCPAReply, sid ServerId) {
 
 	// wait for front end
 	readLineFromStdin()
-	fmt.Printf("{\"state\":\"CPB_broadcast_commited\", \"recoveredSig\":\"%s\", \"hash\":\"%s\"}\n", 
-						hex.EncodeToString(recoveredSig), hex.EncodeToString(fetchedTotalHash))
+	fmt.Printf("{\"state\":\"CPB_broadcast_commited\", \"recoveredSig\":\"%s\", \"hash\":\"%s\"}\n",
+		hex.EncodeToString(recoveredSig), hex.EncodeToString(fetchedTotalHash))
 
 	broadcastToBooth(entryCB, CPB, residingBooth.ID)
 

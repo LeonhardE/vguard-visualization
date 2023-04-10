@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/gob"
 	"errors"
-	"fmt"
 	"io"
 	"net"
 	"time"
@@ -170,10 +169,6 @@ func receivingOADialMessagesVisual(coordinatorId ServerId) {
 			log.Errorf("Gob Decode Err: %v", err)
 			continue
 		}
-		
-		// wait for front end
-		readLineFromStdin()
-		fmt.Printf("{\"state\":\"OPA_validate\"}\n")
 
 		go validatingOAEntryVisual(&m, orderPhaseDialogInfo.enc)
 	}

@@ -39,7 +39,7 @@ export default function Consensus() {
                 </Typography>
                 <Container maxWidth="sm">
                     <Stack
-                        sx={{ pt: 4 }}
+                        sx={{ pt: "2vh" }}
                         direction="row"
                         spacing={2}
                         justifyContent="center"
@@ -106,8 +106,9 @@ export default function Consensus() {
             <Container
                 sx={{
                     maxWidth: "100vw",
-                    height: "37vh",
-                    mt: 1,
+                    height: "40vh",
+                    mt: "1vh",
+                    mb: "1vh",
                     border: 2,
                     borderColor: '#D3D3D3',
                     display: "flex",

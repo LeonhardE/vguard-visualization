@@ -49,13 +49,36 @@ export default function VGuard() {
         testPOST();
     }, []);
 
+    const [orderTarget, setOrderTarget] = useState("");
+
+    const clearOrderTarget = () => {
+        setOrderTarget("");
+    }
+
+    const limitChar = 50;
+
+    function handleOrderTarget(e) {
+        setOrderTarget(e.target.value.toString());
+    };
+
+    function handleOrder() {
+        const strLen = orderTarget.length;
+        if (strLen > 0 && strLen <= limitChar) {
+            console.log(orderTarget);
+        } else {
+            console.log("invalid order target");
+        }
+    };
+
     const [open, setOpen] = useState([false, false]);
     const handleClose = () => {
         setOpen([false, false]);
+        clearOrderTarget();
     };
     const handleToggle = (key) => {
         if (key === 0) {
             setOpen([true, false]);
+            clearOrderTarget();
         }
         else {
             setOpen([false, true]);
@@ -113,7 +136,11 @@ export default function VGuard() {
                                 borderRadius: '5%'
                             }}
                         >
-                            <Ordering />
+                            <Ordering
+                                initialTarget={orderTarget}
+                                onTargetChange={handleOrderTarget}
+                                onTargetApply={handleOrder}
+                            />
                             <Button
                                 sx={{
                                     bottom: 0,

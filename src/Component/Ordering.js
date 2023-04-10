@@ -1,10 +1,11 @@
 import React from 'react';
 import { useState, useEffect, useRef } from 'react'
 import Box from '@mui/material/Box';
-import Container from '@mui/material/Container';
-import Typography from '@mui/material/Typography';
-import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
+import Container from '@mui/material/Container';
+import Stack from '@mui/material/Stack';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
 import { ThemeProvider } from '@mui/material/styles';
 import { Item, lightTheme, Message } from './Util';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -12,7 +13,7 @@ import Grid from '@mui/material/Grid';
 import EmailIcon from '@mui/icons-material/Email';
 
 
-export default function Ordering() {
+export default function Ordering({ initialTarget, onTargetChange, onTargetApply }) {
     const [level, setlevel] = useState(0);
 
     // auto scroll to bottom
@@ -24,6 +25,7 @@ export default function Ordering() {
     useEffect(() => {
         scrollToBottom()
     }, [level]);
+
 
     return (
         <ThemeProvider theme={lightTheme}>
@@ -39,7 +41,26 @@ export default function Ordering() {
                 </Typography>
                 <Container maxWidth="sm">
                     <Stack
-                        sx={{ pt: 4 }}
+                        sx={{ pt: "2vh" }}
+                        direction="row"
+                        spacing={2}
+                        justifyContent="center"
+                    >
+                        <TextField id="ordering-target"
+                            label="Ordering Target"
+                            value={initialTarget}
+                            onChange={(e) => onTargetChange(e)}
+                        />
+                        <Button
+                            onClick={() => onTargetApply()}
+                        >
+                            Apply
+                        </Button>
+                    </Stack>
+                </Container>
+                <Container maxWidth="sm">
+                    <Stack
+                        sx={{ pt: "2vh" }}
                         direction="row"
                         spacing={2}
                         justifyContent="center"
@@ -107,8 +128,9 @@ export default function Ordering() {
             <Container
                 sx={{
                     maxWidth: "100vw",
-                    height: "37vh",
-                    mt: 1,
+                    height: "31vh",
+                    mt: "1vh",
+                    mb: "1vh",
                     border: 2,
                     borderColor: '#D3D3D3',
                     display: "flex",

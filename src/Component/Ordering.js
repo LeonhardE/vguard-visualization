@@ -11,6 +11,8 @@ import { Item, lightTheme, Message } from './Util';
 import CssBaseline from '@mui/material/CssBaseline';
 import Grid from '@mui/material/Grid';
 import EmailIcon from '@mui/icons-material/Email';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
 
 export default function Ordering({ initialTarget, onTargetChange, onTargetApply }) {
@@ -33,20 +35,29 @@ export default function Ordering({ initialTarget, onTargetChange, onTargetApply 
             setIsReadMore(!isReadMore);
         };
         return (
-            <div style={{ whitespace: "pre-wrap" }}>
+            <Stack
+                direction="row"
+                spacing={2}
+                justifyContent="center"
+            >
                 <p className="multiline">
-                    {isReadMore ? text[0].slice(0, 25).concat("...") : text[0]}
+                    {isReadMore ? text[0].slice(0, 20).concat("...") : text[0]}
                     {isReadMore ? "" : <br />}
                     {isReadMore ? "" : text[2]}
-                    &nbsp;&nbsp;&nbsp;<br />
-                    <span
-                        style={{ color: "blue" }}
-                        onClick={toggleReadMore}
-                        className="read-or-hide">
-                        {isReadMore ? "read more" : "show less"}
-                    </span>
                 </p>
-            </div>
+                <Button
+                    onClick={() => toggleReadMore()}
+                    sx={{
+                        top: 0,
+                        right: 0
+                    }}
+                >
+                    {isReadMore ?
+                        <KeyboardArrowDownIcon /> :
+                        <KeyboardArrowUpIcon />
+                    }
+                </Button>
+            </Stack>
         );
     };
 

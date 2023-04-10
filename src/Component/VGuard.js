@@ -1,12 +1,12 @@
 import React from 'react';
-import { useState, useEffect} from 'react'
+import { useState, useEffect } from 'react'
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import { ThemeProvider } from '@mui/material/styles';
-import { lightTheme} from './Util';
+import { lightTheme } from './Util';
 import CssBaseline from '@mui/material/CssBaseline';
 // import Grid from '@mui/material/Grid';
 // import EmailIcon from '@mui/icons-material/Email';
@@ -17,7 +17,7 @@ import Consensus from './Consensus'
 export default function VGuard() {
 
     async function testGET() {
-        
+
         const response = await fetch("http://localhost:8000/test", {
             method: 'GET', // *GET, POST, PUT, DELETE, etc.
             mode: 'cors', // no-cors, cors, *same-origin
@@ -72,48 +72,90 @@ export default function VGuard() {
                     pt: 8,
                     pb: 6,
                 }}
-                >
+            >
                 <Container maxWidth="sm">
                     <Typography
-                    component="h1"
-                    variant="h2"
-                    align="center"
-                    color="text.primary"
-                    gutterBottom
+                        component="h1"
+                        variant="h2"
+                        align="center"
+                        color="text.primary"
+                        gutterBottom
                     >
-                    V-Guard Visualization
+                        V-Guard Visualization
                     </Typography>
                     <Typography variant="h5" align="center" color="text.secondary" paragraph>
-                    This is visualization system for V-Guard. You can observe the ordering and consensus process in V-Guard through
-                    this webpage. More features are coming soon!
+                        This is visualization system for V-Guard. You can observe the ordering and consensus process in V-Guard through
+                        this webpage. More features are coming soon!
                     </Typography>
                     <Stack
-                    sx={{ pt: 4 }}
-                    direction="row"
-                    spacing={2}
-                    justifyContent="center"
+                        sx={{ pt: 4 }}
+                        direction="row"
+                        spacing={2}
+                        justifyContent="center"
                     >
                         <Button variant="contained" onClick={() => handleToggle(0)} >Ordering</Button>
                         <Button variant="outlined" onClick={() => handleToggle(1)} >Consensus</Button>
                     </Stack>
                     <Backdrop
-                      sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-                      open={open[0]}
+                        sx={{
+                            color: '#fff',
+                            zIndex: (theme) => theme.zIndex.drawer + 1
+                        }}
+                        open={open[0]}
                     >
-                        <Button onClick={ () => handleClose() }>Back</Button>
-                        <Ordering />
+                        <Box
+                            sx={{
+                                bgcolor: 'background.paper',
+                                width: '90%',
+                                height: '90%',
+                                border: 8,
+                                borderColor: 'text.primary',
+                                borderRadius: '5%'
+                            }}
+                        >
+                            <Ordering />
+                            <Button
+                                sx={{
+                                    bottom: 0,
+                                    left: "95%"
+                                }}
+                                onClick={() => handleClose()}>
+                                Back
+                            </Button>
+                        </Box>
                     </Backdrop>
                     <Backdrop
-                      sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-                      open={open[1]}
+                        sx={{
+                            color: '#fff',
+                            zIndex: (theme) => theme.zIndex.drawer + 1
+                        }}
+                        open={open[1]}
                     >
-                        <Button onClick={ () => handleClose() }>Back</Button>
-                        <Consensus />
+                        <Box
+                            sx={{
+                                bgcolor: 'background.paper',
+                                width: '90%',
+                                height: '90%',
+                                border: 8,
+                                borderColor: 'text.primary',
+                                borderRadius: '5%'
+                            }}
+                        >
+                            <Consensus />
+                            <Button
+                                sx={{
+                                    bottom: 0,
+                                    left: "95%"
+                                }}
+                                onClick={() => handleClose()}>
+                                Back
+                            </Button>
+                        </Box>
                     </Backdrop>
                 </Container>
             </Box>
-            
+
         </ThemeProvider>
-        
-      );
+
+    );
 }

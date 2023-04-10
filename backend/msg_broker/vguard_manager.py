@@ -2,14 +2,302 @@ import json
 import time
 
 from msg_broker.vguard_process import VGuardProcess
+from msg_broker.vguard_state import VGuardState
 
 ORDER_PHASE = 0
 CONSENSUS_PHASE = 1
 
+STEP_NOT_RUNNING = 0
+
+STEP_OP_0 = 100
+STEP_OP_1 = 101
+STEP_OP_2 = 102
+STEP_OP_3 = 103
+STEP_OP_4 = 104
+STEP_OP_5 = 105
+STEP_OP_6 = 106
+
+STEP_CP_0 = 201
+STEP_CP_1 = 202
+STEP_CP_2 = 203
+STEP_CP_3 = 204
+STEP_CP_4 = 205
+STEP_CP_5 = 206
+STEP_CP_6 = 207
+
+
 class VGuardManager(object):
-    def __init__(self):
+    def __init__(self, state: VGuardState):
+        self.vg_state = state
         self.booth = None
+        self.current_step = STEP_NOT_RUNNING
+
+        self.current_block_id = 0
+        self.order_log_info = None
+
+        self.to_be_committed_log = None
+
         self.vg_list = []
+
+    def is_vguard_running(self):
+        if self.current_step == STEP_NOT_RUNNING:
+            return False
+        else:
+            return True
+
+    def start_order_phase(self, booth: list, msg: str):
+        self.booth = booth
+        self.current_block_id = self.vg_state.get_new_block_id()
+
+        self.vg_list.append(VGuardProcess(0, 2))
+        self.vg_list.append(VGuardProcess(1, 2))
+        self.vg_list.append(VGuardProcess(2, 2))
+        self.vg_list.append(VGuardProcess(3, 2))
+
+        for instance in self.vg_list:
+            instance.start_vguard_instance()
+
+        message = {
+            'blockId': self.current_block_id,
+            'tx': msg
+        }
+        self.vg_list[0].write_to_stdin(json.dumps(message))
+        output = self.vg_list[0].get_a_line_output_dict()
+
+        if output is None:
+            return None
+        self.current_step = STEP_OP_0
+
+        self.order_log_info = {
+            'blockId': self.current_block_id,
+            'tx': msg,
+            'booth': self.booth.copy()
+        }
+
+        output['id'] = self.booth[0]
+        output['Tx'] = msg
+        output['blockId'] = self.current_block_id
+        return [output]
+
+    def start_consensus_phase(self, booth: list):
+        self.booth = booth
+        self.to_be_committed_log = self.vg_state.get_first_order_log(booth[0])
+
+        self.vg_list.append(VGuardProcess(0, 3))
+        self.vg_list.append(VGuardProcess(1, 3))
+        self.vg_list.append(VGuardProcess(2, 3))
+        self.vg_list.append(VGuardProcess(3, 3))
+
+        for instance in self.vg_list:
+            instance.start_vguard_instance()
+
+        message = {
+            'blockId': self.to_be_committed_log['blockId'],
+            'timestamp': self.to_be_committed_log['timestamp'],
+            'tx': self.to_be_committed_log['tx'],
+            'hash': self.to_be_committed_log['hash'],
+            'tsig': self.to_be_committed_log['tsig'],
+        }
+        self.vg_list[0].write_to_stdin(json.dumps(message))
+        output = self.vg_list[0].get_a_line_output_dict()
+        if output is None:
+            return None
+
+        self.current_step = STEP_CP_0
+
+        output['id'] = self.booth[0]
+        output['Tx'] = self.to_be_committed_log['tx']
+        output['blockId'] = self.current_block_id
+        return [output]
+
+    def next_step(self):
+        # order phase
+        if self.current_step == STEP_OP_0:
+            self.current_step = STEP_OP_1
+            return self.op_step_1()
+
+        elif self.current_step == STEP_OP_1:
+            self.current_step = STEP_OP_2
+            return self.op_step_2()
+
+        elif self.current_step == STEP_OP_2:
+            self.current_step = STEP_OP_3
+            return self.op_step_3()
+
+        elif self.current_step == STEP_OP_3:
+            self.current_step = STEP_OP_4
+            return self.op_step_4()
+
+        elif self.current_step == STEP_OP_4:
+            self.current_step = STEP_OP_5
+            return self.op_step_5()
+
+        elif self.current_step == STEP_OP_5:
+            self.current_step = STEP_OP_6
+            ret = self.op_step_6()
+            self.vg_state.append_order_log(self.booth[1], self.order_log_info)
+            self.vg_state.append_order_log(self.booth[2], self.order_log_info)
+            self.vg_state.append_order_log(self.booth[3], self.order_log_info)
+            return ret
+
+        elif self.current_step == STEP_OP_6:
+            for instance in self.vg_list:
+                instance.wait()
+            self.vg_list.clear()
+            self.order_log_info = None
+            self.current_step = STEP_NOT_RUNNING
+            self.booth = None
+            return None
+
+        # consensus phase
+        elif self.current_step == STEP_CP_0:
+            self.current_step = STEP_CP_1
+            return self.cp_step_1()
+
+        elif self.current_step == STEP_CP_1:
+            self.current_step = STEP_CP_2
+            return self.cp_step_2()
+
+        elif self.current_step == STEP_CP_2:
+            self.current_step = STEP_CP_3
+            return self.cp_step_3()
+
+        elif self.current_step == STEP_CP_3:
+            self.current_step = STEP_CP_4
+            return self.cp_step_4()
+
+        elif self.current_step == STEP_CP_4:
+            self.current_step = STEP_CP_5
+            return self.cp_step_5()
+
+        elif self.current_step == STEP_CP_5:
+            self.current_step = STEP_CP_6
+            return self.cp_step_6()
+
+        elif self.current_step == STEP_CP_6:
+            for instance in self.vg_list:
+                instance.wait()
+            self.vg_list.clear()
+            self.current_step = STEP_NOT_RUNNING
+
+            self.vg_state.commit_log(self.booth, self.to_be_committed_log)
+
+            self.to_be_committed_log = None
+            self.booth = None
+            return None
+
+    def op_step_1(self):
+        self.vg_list[0].write_to_stdin('OK')
+        output = self.vg_list[0].get_a_line_output_dict()
+        output['id'] = self.booth[0]
+
+        self.order_log_info['timestamp'] = output['timestamp']
+        self.order_log_info['hash'] = output['hash']
+
+        return [output]
+
+    def op_step_2(self):
+        self.vg_list[1].write_to_stdin('OK')
+        self.vg_list[2].write_to_stdin('OK')
+        self.vg_list[3].write_to_stdin('OK')
+        output1 = self.vg_list[1].get_a_line_output_dict()
+        output2 = self.vg_list[2].get_a_line_output_dict()
+        output3 = self.vg_list[3].get_a_line_output_dict()
+
+        ret = []
+        if output1 is not None:
+            output1['id'] = self.booth[1]
+            ret.append(output1)
+
+        if output2 is not None:
+            output2['id'] = self.booth[2]
+            ret.append(output2)
+
+        if output3 is not None:
+            output3['id'] = self.booth[3]
+            ret.append(output3)
+        return ret
+
+    def op_step_3(self):
+        return self.op_step_2()
+
+    def op_step_4(self):
+        self.vg_list[0].write_to_stdin('OK')
+        output = self.vg_list[0].get_a_line_output_dict()
+        output['id'] = self.booth[0]
+
+        self.order_log_info['tsig'] = output['tSig']
+        self.vg_state.append_order_log(self.booth[0], self.order_log_info)
+
+        return [output]
+
+    def op_step_5(self):
+        return self.op_step_2()
+
+    def op_step_6(self):
+        return self.op_step_2()
+
+    def cp_step_1(self):
+        self.vg_list[0].write_to_stdin('OK')
+        output = self.vg_list[0].get_a_line_output_dict()
+        output['id'] = self.booth[0]
+        return [output]
+
+    def cp_step_2(self):
+        ret = []
+        self.vg_list[1].write_to_stdin('OK')
+        self.vg_list[2].write_to_stdin('OK')
+        self.vg_list[3].write_to_stdin('OK')
+        output1 = self.vg_list[1].get_a_line_output_dict()
+        output2 = self.vg_list[2].get_a_line_output_dict()
+        output3 = self.vg_list[3].get_a_line_output_dict()
+        if not self.vg_state.has_seen_order_log(self.booth[1], self.to_be_committed_log['blockId']):
+            output1['id'] = self.booth[1]
+            ret.append(output1)
+
+        if not self.vg_state.has_seen_order_log(self.booth[2], self.to_be_committed_log['blockId']):
+            output2['id'] = self.booth[2]
+            ret.append(output2)
+
+        if not self.vg_state.has_seen_order_log(self.booth[3], self.to_be_committed_log['blockId']):
+            output3['id'] = self.booth[3]
+            ret.append(output3)
+
+        output1 = self.vg_list[1].get_a_line_output_dict()
+        output2 = self.vg_list[2].get_a_line_output_dict()
+        output3 = self.vg_list[3].get_a_line_output_dict()
+        output1['id'] = self.booth[1]
+        output2['id'] = self.booth[2]
+        output3['id'] = self.booth[3]
+        ret.append(output1)
+        ret.append(output2)
+        ret.append(output3)
+        return ret
+
+    def cp_step_3(self):
+        ret = []
+        self.vg_list[1].write_to_stdin('OK')
+        self.vg_list[2].write_to_stdin('OK')
+        self.vg_list[3].write_to_stdin('OK')
+        output1 = self.vg_list[1].get_a_line_output_dict()
+        output2 = self.vg_list[2].get_a_line_output_dict()
+        output3 = self.vg_list[3].get_a_line_output_dict()
+        output1['id'] = self.booth[1]
+        output2['id'] = self.booth[2]
+        output3['id'] = self.booth[3]
+        ret.append(output1)
+        ret.append(output2)
+        ret.append(output3)
+        return ret
+
+    def cp_step_4(self):
+        return self.cp_step_1()
+
+    def cp_step_5(self):
+        return self.cp_step_3()
+
+    def cp_step_6(self):
+        return self.cp_step_3()
 
     def start_whole_consensus_phase(self, booth: list, blockid: int, msg: str):
         self.booth = booth

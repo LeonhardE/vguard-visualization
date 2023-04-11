@@ -237,10 +237,10 @@ export default function VGuard() {
                             }}
                         >
                             <Ordering
+                                booth={booth}
                                 initialTarget={orderTarget}
                                 onTargetChange={handleOrderTarget}
                                 onTargetApply={handleOrder}
-                                booth={booth}
                             />
                             <Button
                                 sx={{

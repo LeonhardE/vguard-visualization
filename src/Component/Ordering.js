@@ -15,8 +15,13 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
 
-export default function Ordering({ initialTarget, onTargetChange, onTargetApply, booth }) {
+export default function Ordering({ booth, initialTarget, onTargetChange, onTargetApply }) {
     const [level, setlevel] = useState(0);
+
+    const proposer = "Car".concat(booth[0]);
+    const validator1 = "Car".concat(booth[1]);
+    const validator2 = "Car".concat(booth[2]);
+    const validator3 = "Car".concat(booth[3]);
 
     // auto scroll to bottom
     const messagesEndRef = useRef(null)
@@ -72,7 +77,7 @@ export default function Ordering({ initialTarget, onTargetChange, onTargetApply,
                 }}
             >
                 <Typography variant="h3" align="center" color="text.primary">
-                    Ordering booth: {booth}
+                    Ordering Booth: [{proposer}, {validator1}, {validator2}, {validator3}]
                 </Typography>
                 <Container maxWidth="sm">
                     <Stack
@@ -147,16 +152,16 @@ export default function Ordering({ initialTarget, onTargetChange, onTargetApply,
                     </Grid>
                     {/* vehicle identities */}
                     <Grid item xs={3}>
-                        <Item>Proposer</Item>
+                        <Item>{proposer} (Proposer)</Item>
                     </Grid>
                     <Grid item xs={3}>
-                        <Item>Validator</Item>
+                        <Item>{validator1} (Validator)</Item>
                     </Grid>
                     <Grid item xs={3}>
-                        <Item>Validator</Item>
+                        <Item>{validator2} (Validator)</Item>
                     </Grid>
                     <Grid item xs={3}>
-                        <Item>Validator</Item>
+                        <Item>{validator3} (Validator)</Item>
                     </Grid>
                 </Grid>
             </Container>

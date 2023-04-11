@@ -47,6 +47,7 @@ export default function VGuard() {
     const [isApplyDisabled, setIsApplyDisabled] = useState(false);
     const [isNextDisabled, setIsNextDisabled] = useState(true);
     const [isExitDisabled, setIsExitDisabled] = useState(false);
+    const [currMsgLst, setCurrMsgLst] = useState([]);
 
     async function testGET() {
 
@@ -114,6 +115,7 @@ export default function VGuard() {
     }
 
     async function startOrderPhase() {
+        setCurrMsgLst([]);
         if (!booth) {
             setIsApplyDisabled(false);
             setIsNextDisabled(true);
@@ -183,6 +185,25 @@ export default function VGuard() {
             setIsNextDisabled(false);
             setIsExitDisabled(true);
             console.log(data['msg']);
+            const msgLst = []
+            for (let i = 0; i < booth.length; i++) {
+                msgLst.push("");
+            }
+            for (let i = 0; i < data['msg'].length; i++) {
+                const idx = booth.indexOf(data['msg'][i]['id']);
+                if (idx >= 0) {
+                    const temp = []
+                    for (let [key, value] of Object.entries(data['msg'][i])) {
+                        if (key != 'id') {
+                            temp.push(key.toString().concat(": ").concat(value));
+                        }
+                    }
+                    msgLst[idx] = temp.join('\n');
+                }
+            }
+            currMsgLst.push(msgLst)
+            setCurrMsgLst([...currMsgLst]);
+            console.log(currMsgLst);
         } else {
             // 'error': 'VGUARD_STOPPED'
             setIsApplyDisabled(false);
@@ -218,6 +239,7 @@ export default function VGuard() {
         setIsApplyDisabled(false);
         setIsNextDisabled(true);
         setIsExitDisabled(false);
+        setCurrMsgLst([]);
     };
 
     const handleToggle = (key) => {
@@ -361,6 +383,7 @@ export default function VGuard() {
                                 isNextDisabled={isNextDisabled}
                                 handleExit={handleClose}
                                 isExitDisabled={isExitDisabled}
+                                currMsgLst={currMsgLst}
                             />
                         </Box>
                     </Backdrop>

@@ -66,8 +66,13 @@ class VGuardManager(object):
         self.vg_list.append(VGuardProcess(2, 2))
         self.vg_list.append(VGuardProcess(3, 2))
 
-        for instance in self.vg_list:
-            instance.start_vguard_instance()
+        self.vg_list[0].start_vguard_instance()
+        time.sleep(1)
+        self.vg_list[1].start_vguard_instance()
+        self.vg_list[2].start_vguard_instance()
+        self.vg_list[3].start_vguard_instance()
+        # for instance in self.vg_list:
+        #     instance.start_vguard_instance()
 
         message = {
             'blockId': self.current_block_id,
@@ -100,8 +105,13 @@ class VGuardManager(object):
         self.vg_list.append(VGuardProcess(2, 3))
         self.vg_list.append(VGuardProcess(3, 3))
 
-        for instance in self.vg_list:
-            instance.start_vguard_instance()
+        self.vg_list[0].start_vguard_instance()
+        time.sleep(1)
+        self.vg_list[1].start_vguard_instance()
+        self.vg_list[2].start_vguard_instance()
+        self.vg_list[3].start_vguard_instance()
+        # for instance in self.vg_list:
+        #     instance.start_vguard_instance()
 
         message = {
             'blockId': self.to_be_committed_log['blockId'],

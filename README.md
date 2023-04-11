@@ -19,7 +19,11 @@ cd ./backend/vguardbft
 
 ### How to Run
 
+This project needs to run with [yarn](https://yarnpkg.com/getting-started/install). The backend requires Python3 and Flask.
+
 ```shell
+// install dependencies of the React frontend
+yarn install
 // concurrently initiate the frontend and backend
 yarn start
 ```

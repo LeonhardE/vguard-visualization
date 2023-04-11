@@ -35,17 +35,18 @@ export default function VGuard() {
         temp[i] = false;
     }
 
-    const limitChar = 50;
-
     const [orderTarget, setOrderTarget] = useState("");
     const [open, setOpen] = useState([false, false]);
     const [booth, setBooth] = useState([]);
     const [isSelected, setIsSelected] = useState(temp);
     const [proposer, setProposer] = useState("None");
-    const [consenTarget, setConsenTarget] = useState({"blockId": "None", "booth": "", "timestamp": "None", "tx": "None"});
+    const [consenTarget, setConsenTarget] = useState({ "blockId": "None", "booth": "", "timestamp": "None", "tx": "None" });
     const [orderLog, setOrderLog] = useState([]);
     const [commitLog, setCommitLog] = useState([]);
     const [openLog, setOpenLog] = useState(temp);
+    const [isApplyDisabled, setIsApplyDisabled] = useState(false);
+    const [isNextDisabled, setIsNextDisabled] = useState(true);
+    const [isExitDisabled, setIsExitDisabled] = useState(false);
 
     async function testGET() {
 
@@ -87,7 +88,7 @@ export default function VGuard() {
             setConsenTarget(order[0])
         }
         else {
-            setConsenTarget({"blockId": "None", "booth": "", "timestamp": "None", "tx": "None"})
+            setConsenTarget({ "blockId": "None", "booth": "", "timestamp": "None", "tx": "None" })
         }
         return order
     }
@@ -112,14 +113,95 @@ export default function VGuard() {
         return data.msg
     }
 
+    async function startOrderPhase() {
+        if (!booth) {
+            setIsApplyDisabled(false);
+            setIsNextDisabled(true);
+            setIsExitDisabled(false);
+            return {
+                'error': 'undefined booth',
+                'success': 'false'
+            };
+        } else if (orderTarget.length == 0) {
+            setIsApplyDisabled(false);
+            setIsNextDisabled(true);
+            setIsExitDisabled(false);
+            return {
+                'error': 'empty target',
+                'success': 'false'
+            };
+        } else {
+            const postData = {
+                'booth': [...booth],
+                'tx': orderTarget
+            }
+            console.log(postData);
+
+            const response = await fetch("http://localhost:8000/start_order_phase", {
+                method: 'POST', // *GET, POST, PUT, DELETE, etc.
+                mode: 'cors', // no-cors, cors, *same-origin
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(postData)
+            });
+            const data = await response.json();
+            console.log(data);
+
+            if (data['success'] == 'true') {
+                setIsApplyDisabled(true);
+                setIsNextDisabled(false);
+                setIsExitDisabled(true);
+                console.log(data['msg']);
+            } else {
+                setIsApplyDisabled(false);
+                setIsNextDisabled(true);
+                setIsExitDisabled(false);
+                console.log(data['error']);
+            }
+
+            return data;
+        }
+    }
+
+    async function nextStep() {
+        const postData = {}
+
+        const response = await fetch("http://localhost:8000/next_step", {
+            method: 'POST', // *GET, POST, PUT, DELETE, etc.
+            mode: 'cors', // no-cors, cors, *same-origin
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(postData)
+        });
+        const data = await response.json();
+        console.log(data);
+
+        if (data['success'] == 'true') {
+            setIsApplyDisabled(true);
+            setIsNextDisabled(false);
+            setIsExitDisabled(true);
+            console.log(data['msg']);
+        } else {
+            // 'error': 'VGUARD_STOPPED'
+            setIsApplyDisabled(false);
+            setIsNextDisabled(true);
+            setIsExitDisabled(false);
+            console.log(data['error']);
+        }
+
+        return data;
+    }
+
     const handleOpenLog = (key) => {
-        setOpenLog({...openLog, [key]: true});
+        setOpenLog({ ...openLog, [key]: true });
         getOrderLog(key);
         getCommitLog(key);
     }
 
     const handleLogClose = (key) => {
-        setOpenLog({...openLog, [key]: false})
+        setOpenLog({ ...openLog, [key]: false })
     }
 
     const clearOrderTarget = () => {
@@ -130,18 +212,12 @@ export default function VGuard() {
         setOrderTarget(e.target.value.toString());
     };
 
-    function handleOrder() {
-        const strLen = orderTarget.length;
-        if (strLen > 0 && strLen <= limitChar) {
-            console.log(orderTarget);
-        } else {
-            console.log("invalid order target");
-        }
-    };
-
     const handleClose = () => {
         setOpen([false, false]);
         clearOrderTarget();
+        setIsApplyDisabled(false);
+        setIsNextDisabled(true);
+        setIsExitDisabled(false);
     };
 
     const handleToggle = (key) => {
@@ -182,7 +258,7 @@ export default function VGuard() {
             }
             else {
                 setProposer("None");
-                setConsenTarget({"blockId": "None", "booth": "", "timestamp": "None", "tx": "None"})
+                setConsenTarget({ "blockId": "None", "booth": "", "timestamp": "None", "tx": "None" })
             }
         }
     }
@@ -279,16 +355,13 @@ export default function VGuard() {
                                 booth={booth}
                                 initialTarget={orderTarget}
                                 onTargetChange={handleOrderTarget}
-                                onTargetApply={handleOrder}
+                                onTargetApply={startOrderPhase}
+                                isApplyDisabled={isApplyDisabled}
+                                handleNextStep={nextStep}
+                                isNextDisabled={isNextDisabled}
+                                handleExit={handleClose}
+                                isExitDisabled={isExitDisabled}
                             />
-                            <Button
-                                sx={{
-                                    bottom: 0,
-                                    left: "83vw"
-                                }}
-                                onClick={() => handleClose()}>
-                                Back
-                            </Button>
                         </Box>
                     </Backdrop>
                     <Backdrop
@@ -332,10 +405,10 @@ export default function VGuard() {
                     {carlist.map((car) => (
                         <Grid item key={car.key} xs={2.4}>
                             <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                                <CardActionArea 
-                                onClick={() => handleOpenLog(car.key)}
+                                <CardActionArea
+                                    onClick={() => handleOpenLog(car.key)}
                                 >
-                                    <CardMedia 
+                                    <CardMedia
                                         component="div"
                                         style={{
                                             display: 'flex',
@@ -354,9 +427,9 @@ export default function VGuard() {
                                     </CardMedia>
                                 </CardActionArea>
                                 <Backdrop
-                                  sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-                                  open={openLog[car.key]}
-                                  onClick={() => handleLogClose(car.key)}
+                                    sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                                    open={openLog[car.key]}
+                                    onClick={() => handleLogClose(car.key)}
                                 >
                                     <List sx={{ width: '100%', maxWidth: 400, bgcolor: 'background.paper' }}>
                                         <ListItem alignItems="flex-start">
@@ -364,7 +437,7 @@ export default function VGuard() {
                                         </ListItem>
                                         <Divider variant="inset" component="li" />
                                         {orderLog.map((log) => (
-                                            <ListItem 
+                                            <ListItem
                                                 key={log.blockId}
                                                 alignItems="flex-start"
                                             >
@@ -382,7 +455,7 @@ export default function VGuard() {
                                         </ListItem>
                                         <Divider variant="inset" component="li" />
                                         {commitLog.map((log) => (
-                                            <ListItem 
+                                            <ListItem
                                                 key={log.blockId}
                                                 alignItems="flex-start"
                                             >

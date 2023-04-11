@@ -15,7 +15,14 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
 
-export default function Ordering({ booth, initialTarget, onTargetChange, onTargetApply }) {
+export default function Ordering({
+    booth,
+    initialTarget, onTargetChange,
+    onTargetApply, isApplyDisabled,
+    handleNextStep, isNextDisabled,
+    handleExit, isExitDisabled
+}) {
+
     const [level, setlevel] = useState(0);
 
     const proposer = "Car".concat(booth[0]);
@@ -93,6 +100,7 @@ export default function Ordering({ booth, initialTarget, onTargetChange, onTarge
                         />
                         <Button
                             onClick={() => onTargetApply()}
+                            disabled={isApplyDisabled}
                         >
                             Apply
                         </Button>
@@ -105,12 +113,26 @@ export default function Ordering({ booth, initialTarget, onTargetChange, onTarge
                         spacing={2}
                         justifyContent="center"
                     >
-                        <Button variant="contained" onClick={() => {
-                            setlevel(level + 1)
-                        }} >Next Step</Button>
-                        <Button variant="outlined" onClick={() => {
-                            setlevel(0)
-                        }} >Restart</Button>
+                        <Button
+                            variant="contained"
+                            onClick={() => {
+                                setlevel(level + 1);
+                                handleNextStep();
+                            }}
+                            disabled={isNextDisabled}
+                        >
+                            Next Step
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            onClick={() => {
+                                setlevel(0);
+                                handleExit();
+                            }}
+                            disabled={isExitDisabled}
+                        >
+                            Exit
+                        </Button>
                     </Stack>
                 </Container>
             </Box>
@@ -168,7 +190,7 @@ export default function Ordering({ booth, initialTarget, onTargetChange, onTarge
             <Container
                 sx={{
                     maxWidth: "100vw",
-                    height: "31vh",
+                    height: "37vh",
                     mt: "1vh",
                     mb: "1vh",
                     border: 2,

@@ -17,8 +17,6 @@ import CardMedia from '@mui/material/CardMedia';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import Divider from '@mui/material/Divider';
-// import ListItemText from '@mui/material/ListItemText';
-// import EmailIcon from '@mui/icons-material/Email';
 import Backdrop from '@mui/material/Backdrop';
 import Ordering from './Ordering';
 import Consensus from './Consensus'
@@ -122,19 +120,6 @@ export default function VGuard() {
 
     const handleLogClose = (key) => {
         setOpenLog({...openLog, [key]: false})
-    }
-
-    function LogDisplay(log) {
-        return (
-            <Typography color="text.primary">
-                BlockId: {log.blockId} <br />
-                Booth: {log.booth} <br />
-                {/* Hash: {log.hash} <br /> */}
-                Timestamp: {log.timestamp} <br />
-                {/* Tsig: {log.tsig} <br /> */}
-                Transaction: {log.tx}
-            </Typography>
-        )
     }
 
     const clearOrderTarget = () => {

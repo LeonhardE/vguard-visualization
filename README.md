@@ -4,9 +4,28 @@
 
 The project aims to address the complexities of understanding distributed algorithms and reduce the difficulty of comprehending V-Guard [1], particularly with its intricate dynamic configuration.
 
-We decide to use a web-based approach to implement desired features. The V-Guard code will serve as middleware, while our system will be built using JavaScript and React.
+We decide to use a web-based approach to implement desired features. The V-Guard code will serve as middleware, while our system will be built using JavaScript, React, Flask and V-GuardBFT.
 
 ## Artifacts that help run the code and reproduce the results
+
+## How to build
+
+### 1. Build front-end
+TODO
+
+### 2. Build back-end
+    // Compile the code in "vguardbft" using the build script
+    cd ./backend/vguardbft
+    ./scripts/build.sh
+
+## How to Run
+
+### 1. start back-end
+    // Run flask instance
+    python3 ./backend/launch_msg_broker.py
+
+### 2. start front-end
+TODO
 
 
 ## References

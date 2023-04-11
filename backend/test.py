@@ -1,5 +1,5 @@
 import time
-
+import socket
 import requests
 import json
 
@@ -38,6 +38,14 @@ def next_step():
         print(data['error'])
 
 
+def terminate(car):
+    time.sleep(1)
+    print('Terminate: ' + str(car))
+    url = url_base + '/terminate/' + str(car)
+    ret = requests.post(url)
+    time.sleep(1)
+
+
 def get_order_log(car):
     url = url_base + '/get_order_log/' + str(car)
     ret = requests.post(url)
@@ -58,9 +66,12 @@ def get_committed_log(car):
         print(data['error'])
 
 
-start_order_phase([0, 1, 2, 3], 'tes23452345234523452345')
+start_order_phase([1, 2, 3, 5], 'tes23452345234523452345')
 next_step()
 next_step()
+
+terminate(2)
+
 next_step()
 next_step()
 next_step()
@@ -71,18 +82,26 @@ for car in range(10):
     get_order_log(car)
 
 
-start_consensus_phase([3, 7, 8, 9])
-next_step()
-next_step()
-next_step()
-next_step()
-next_step()
-next_step()
-next_step()
-for car in range(10):
-    print(car, 'order: ')
-    get_order_log(car)
+print()
 
-for car in range(10):
-    print(car, 'committed: ')
-    get_committed_log(car)
+# start_consensus_phase([0, 1, 2, 6])
+# # terminate(2)
+# next_step()
+# next_step()
+# next_step()
+# next_step()
+# next_step()
+# next_step()
+# next_step()
+#
+# print()
+#
+# for car in range(10):
+#     print(car, 'order: ')
+#     get_order_log(car)
+#
+# print()
+#
+# for car in range(10):
+#     print(car, 'committed: ')
+#     get_committed_log(car)

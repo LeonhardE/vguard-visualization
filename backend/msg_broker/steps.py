@@ -62,3 +62,14 @@ def app_next_step():
 
     data = {'success': 'true', 'msg': output}
     return jsonify(data)
+
+
+@msg_broker_app.route('/terminate/<car>', methods=['GET', 'POST'])
+def app_terminate_vginstance(car):
+    if not vg_manager.is_vguard_running():
+        return jsonify({'success': 'false', 'error': 'VGuard instance is not running.'})
+
+    vg_manager.terminate_vginstance(int(car))
+
+    data = {'success': 'true'}
+    return jsonify(data)

@@ -149,3 +149,4 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 *.lock
+backend/vguardbft/config/localhost_visual.conf

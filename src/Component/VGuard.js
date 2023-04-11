@@ -208,7 +208,7 @@ export default function VGuard() {
                     pb: 6,
                 }}
             >
-                <Container maxWidth="100vw">
+                <Container maxWidth="md">
                     <Typography
                         component="h1"
                         variant="h2"
@@ -223,9 +223,11 @@ export default function VGuard() {
                         You can observe the ordering and consensus process in V-Guard through this webpage.
                     </Typography>
                     <Typography variant="body1" align="center" color="text.secondary" paragraph>
-                        There must be <b>four cars</b> in the booth to start both ordering and consensus phase. The default proposer in the booth is the first selected car. <br />
+                        There must be <b>four cars</b> in the booth to start both ordering and consensus phase. <br />
+                        The default proposer in the booth is the first selected car. <br />
                         <b>Booth Size</b>: {booth.length}; <b>Proposer</b>: {proposer}<br />
-                        For the consensus phase, the order log of the proposer car cannot be empty. The consensus target is set as the first record in the order log of the proposer. <br />
+                        For the consensus phase, the order log of the proposer car cannot be empty. <br />
+                        The consensus target is set as the first record in the order log of the proposer. <br />
                         <b>Consensus Target</b> <br />
                         BlockId: {consenTarget.blockId} <br />
                         Booth: Car{consenTarget.booth[0]} Car{consenTarget.booth[1]} Car{consenTarget.booth[2]} Car{consenTarget.booth[3]} <br />
@@ -329,7 +331,7 @@ export default function VGuard() {
                                     open={openLog[car.key]}
                                     onClick={() => handleLogClose(car.key)}
                                 >
-                                    <List sx={{ width: '100%', maxWidth: 400, bgcolor: 'background.paper' }}>
+                                    <List sx={{ width: '100%', maxWidth: 400, maxHeight: 600, bgcolor: 'background.paper' }}>
                                         <ListItem alignItems="flex-start">
                                             <Typography variant="h6" color="text.primary">Order Log</Typography>
                                         </ListItem>

@@ -25,11 +25,39 @@ export default function Consensus({
     const [isExitDisabled, setIsExitDisabled] = useState(false);
     const [currMsgLst, setCurrMsgLst] = useState([]);
     const [isStartDisabled, setIsStartDisabled] = useState(false);
+    const [crashDisabled, setCrashDisabled] = useState([false, false, false, false])
 
     const proposer = "Car".concat(booth[0]);
     const validator1 = "Car".concat(booth[1]);
     const validator2 = "Car".concat(booth[2]);
     const validator3 = "Car".concat(booth[3]);
+
+    async function crash(key) {
+        const response = await fetch("http://localhost:8000/terminate/" + key, {
+            method: 'GET', // *GET, POST, PUT, DELETE, etc.
+            mode: 'cors', // no-cors, cors, *same-origin
+        });
+        const data = await response.json();
+        console.log(data);
+        let index = 0;
+        for (let i = 0; i < booth.length; i++) {
+            if (booth[i] === key) {
+                index = i;
+                break;
+            }
+        }
+        let temp = [];
+        for (let i = 0; i < crashDisabled.length; i++) {
+            if (i === index) {
+                temp[i] = true;
+            }
+            else {
+                temp[i] = crashDisabled[i];
+            }
+        }
+        setCrashDisabled(temp)
+        return data
+    }
 
     async function startConsensusPhase() {
         setCurrMsgLst([]);
@@ -130,6 +158,7 @@ export default function Consensus({
         setIsNextDisabled(true);
         setIsExitDisabled(false);
         setCurrMsgLst([]);
+        setCrashDisabled([false, false, false, false]);
         // clear seletion
         clearSelection();
     };
@@ -192,7 +221,7 @@ export default function Consensus({
                 }}
             >
                 <Typography variant="h3" align="center" color="text.primary">
-                    Ordering Booth: [{proposer}, {validator1}, {validator2}, {validator3}]
+                    Consensus Phase
                 </Typography>
                 <Container maxWidth="sm">
                     <Stack
@@ -208,13 +237,6 @@ export default function Consensus({
                             Timestamp: {consenTarget.timestamp} <br />
                             Transaction: {consenTarget.tx}
                         </Typography>
-                        <Button
-                            variant="outlined"
-                            onClick={() => startConsensusPhase()}
-                            disabled={isStartDisabled}
-                        >
-                            Start
-                        </Button>
                     </Stack>
                 </Container>
                 <Container maxWidth="sm">
@@ -224,6 +246,13 @@ export default function Consensus({
                         spacing={2}
                         justifyContent="center"
                     >
+                        <Button
+                            variant="outlined"
+                            onClick={() => startConsensusPhase()}
+                            disabled={isStartDisabled}
+                        >
+                            Start
+                        </Button>
                         <Button
                             variant="contained"
                             onClick={() => {
@@ -272,17 +301,86 @@ export default function Consensus({
                         <img className="vehicle" alt="vehicle" src="car.png" />
                     </Grid>
                     {/* vehicle identities */}
+                    {/* vehicle identities */}
                     <Grid item xs={3}>
-                        <Item>{proposer} (Proposer)</Item>
+                        <Item 
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            backgroundColor: crashDisabled[0] ? 'red' : '#A0D4CD'
+                        }}>{proposer} (Proposer)</Item>
                     </Grid>
                     <Grid item xs={3}>
-                        <Item>{validator1} (Validator)</Item>
+                        <Item 
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            backgroundColor: crashDisabled[1] ? 'red' : '#A0D4CD'
+                        }}>{validator1} (Validator)</Item>
                     </Grid>
                     <Grid item xs={3}>
-                        <Item>{validator2} (Validator)</Item>
+                        <Item 
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            backgroundColor: crashDisabled[2] ? 'red' : '#A0D4CD'
+                        }}>{validator2} (Validator)</Item>
                     </Grid>
                     <Grid item xs={3}>
-                        <Item>{validator3} (Validator)</Item>
+                        <Item 
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            backgroundColor: crashDisabled[3] ? 'red' : '#A0D4CD'
+                        }}>{validator3} (Validator)</Item>
+                    </Grid>
+                    <Grid item xs={3} >
+                        <Stack
+                            direction="row"
+                            spacing={0}
+                            justifyContent="center"
+                        >
+                            <Button variant='outlined' size="small" onClick={() => crash(booth[0])} disabled={crashDisabled[0]}>
+                                Click to Crash
+                            </Button>
+                        </Stack>
+                    </Grid>
+                    <Grid item xs={3} >
+                        <Stack
+                            direction="row"
+                            spacing={0}
+                            justifyContent="center"
+                        >
+                            <Button variant='outlined' size="small" onClick={() => crash(booth[1])} disabled={crashDisabled[1]}>
+                                Click to Crash
+                            </Button>
+                        </Stack>
+                    </Grid>
+                    <Grid item xs={3} >
+                        <Stack
+                            direction="row"
+                            spacing={0}
+                            justifyContent="center"
+                        >
+                            <Button variant='outlined' size="small" onClick={() => crash(booth[2])} disabled={crashDisabled[2]}>
+                                Click to Crash
+                            </Button>
+                        </Stack>
+                    </Grid>
+                    <Grid item xs={3} >
+                        <Stack
+                            direction="row"
+                            spacing={0}
+                            justifyContent="center"
+                        >
+                            <Button variant='outlined' size="small" onClick={() => crash(booth[3])} disabled={crashDisabled[3]}>
+                                Click to Crash
+                            </Button>
+                        </Stack>
                     </Grid>
                 </Grid>
             </Container>

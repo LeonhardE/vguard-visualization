@@ -22,20 +22,48 @@ export default function Ordering({
 
     const [level, setlevel] = useState(0);
     const [orderTarget, setOrderTarget] = useState("");
-    const [isApplyDisabled, setIsApplyDisabled] = useState(false);
+    const [isStartDisabled, setIsStartDisabled] = useState(false);
     const [isNextDisabled, setIsNextDisabled] = useState(true);
     const [isExitDisabled, setIsExitDisabled] = useState(false);
     const [currMsgLst, setCurrMsgLst] = useState([]);
+    const [crashDisabled, setCrashDisabled] = useState([false, false, false, false])
 
     const proposer = "Car".concat(booth[0]);
     const validator1 = "Car".concat(booth[1]);
     const validator2 = "Car".concat(booth[2]);
     const validator3 = "Car".concat(booth[3]);
 
+    async function crash(key) {
+        const response = await fetch("http://localhost:8000/terminate/" + key, {
+            method: 'GET', // *GET, POST, PUT, DELETE, etc.
+            mode: 'cors', // no-cors, cors, *same-origin
+        });
+        const data = await response.json();
+        console.log(data);
+        let index = 0;
+        for (let i = 0; i < booth.length; i++) {
+            if (booth[i] === key) {
+                index = i;
+                break;
+            }
+        }
+        let temp = [];
+        for (let i = 0; i < crashDisabled.length; i++) {
+            if (i === index) {
+                temp[i] = true;
+            }
+            else {
+                temp[i] = crashDisabled[i];
+            }
+        }
+        setCrashDisabled(temp)
+        return data
+    }
+
     async function startOrderPhase() {
         setCurrMsgLst([]);
         if (!booth) {
-            setIsApplyDisabled(false);
+            setIsStartDisabled(false);
             setIsNextDisabled(true);
             setIsExitDisabled(false);
             return {
@@ -43,7 +71,7 @@ export default function Ordering({
                 'success': 'false'
             };
         } else if (orderTarget.length === 0) {
-            setIsApplyDisabled(false);
+            setIsStartDisabled(false);
             setIsNextDisabled(true);
             setIsExitDisabled(false);
             return {
@@ -69,12 +97,12 @@ export default function Ordering({
             console.log(data);
 
             if (data['success'] === 'true') {
-                setIsApplyDisabled(true);
+                setIsStartDisabled(true);
                 setIsNextDisabled(false);
                 setIsExitDisabled(true);
                 console.log(data['msg']);
             } else {
-                setIsApplyDisabled(false);
+                setIsStartDisabled(false);
                 setIsNextDisabled(true);
                 setIsExitDisabled(false);
                 console.log(data['error']);
@@ -99,7 +127,7 @@ export default function Ordering({
         console.log(data);
 
         if (data['success'] === 'true') {
-            setIsApplyDisabled(true);
+            setIsStartDisabled(true);
             setIsNextDisabled(false);
             setIsExitDisabled(true);
             console.log(data['msg']);
@@ -124,7 +152,7 @@ export default function Ordering({
             console.log(currMsgLst);
         } else {
             // 'error': 'VGUARD_STOPPED'
-            setIsApplyDisabled(true);
+            setIsStartDisabled(true);
             setIsNextDisabled(true);
             setIsExitDisabled(false);
             console.log(data['error']);
@@ -144,10 +172,11 @@ export default function Ordering({
     const handleExit = () => {
         setOpen([false, false]);
         clearOrderTarget();
-        setIsApplyDisabled(false);
+        setIsStartDisabled(false);
         setIsNextDisabled(true);
         setIsExitDisabled(false);
         setCurrMsgLst([]);
+        setCrashDisabled([false, false, false, false]);
         // clear seletion
         clearSelection();
     };
@@ -210,7 +239,7 @@ export default function Ordering({
                 }}
             >
                 <Typography variant="h3" align="center" color="text.primary">
-                    Ordering Booth: [{proposer}, {validator1}, {validator2}, {validator3}]
+                    Ordering Phase
                 </Typography>
                 <Container maxWidth="sm">
                     <Stack
@@ -224,12 +253,6 @@ export default function Ordering({
                             value={orderTarget}
                             onChange={(e) => handleOrderTarget(e)}
                         />
-                        <Button
-                            onClick={() => startOrderPhase()}
-                            disabled={isApplyDisabled}
-                        >
-                            Apply
-                        </Button>
                     </Stack>
                 </Container>
                 <Container maxWidth="sm">
@@ -239,6 +262,12 @@ export default function Ordering({
                         spacing={2}
                         justifyContent="center"
                     >
+                        <Button
+                            onClick={() => startOrderPhase()}
+                            disabled={isStartDisabled}
+                        >
+                            Start
+                        </Button>
                         <Button
                             variant="contained"
                             onClick={() => {
@@ -274,37 +303,105 @@ export default function Ordering({
                     className="msgDisplay"
                     spacing={2}
                 >
-                    <Grid item xs={3}>
+                    <Grid item xs={3} >
                         <img className="vehicle" alt="vehicle" src="car.png" />
                     </Grid>
-                    <Grid item xs={3}>
+                    <Grid item xs={3} >
                         <img className="vehicle" alt="vehicle" src="car.png" />
                     </Grid>
-                    <Grid item xs={3}>
+                    <Grid item xs={3} >
                         <img className="vehicle" alt="vehicle" src="car.png" />
                     </Grid>
-                    <Grid item xs={3}>
+                    <Grid item xs={3} >
                         <img className="vehicle" alt="vehicle" src="car.png" />
                     </Grid>
                     {/* vehicle identities */}
                     <Grid item xs={3}>
-                        <Item>{proposer} (Proposer)</Item>
+                        <Item 
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            backgroundColor: crashDisabled[0] ? 'red' : '#A0D4CD'
+                        }}>{proposer} (Proposer)</Item>
                     </Grid>
                     <Grid item xs={3}>
-                        <Item>{validator1} (Validator)</Item>
+                        <Item 
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            backgroundColor: crashDisabled[1] ? 'red' : '#A0D4CD'
+                        }}>{validator1} (Validator)</Item>
                     </Grid>
                     <Grid item xs={3}>
-                        <Item>{validator2} (Validator)</Item>
+                        <Item 
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            backgroundColor: crashDisabled[2] ? 'red' : '#A0D4CD'
+                        }}>{validator2} (Validator)</Item>
                     </Grid>
                     <Grid item xs={3}>
-                        <Item>{validator3} (Validator)</Item>
+                        <Item 
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            backgroundColor: crashDisabled[3] ? 'red' : '#A0D4CD'
+                        }}>{validator3} (Validator)</Item>
+                    </Grid>
+                    <Grid item xs={3} >
+                        <Stack
+                            direction="row"
+                            spacing={0}
+                            justifyContent="center"
+                        >
+                            <Button variant='outlined' size="small" onClick={() => crash(booth[0])} disabled={crashDisabled[0]}>
+                                Click to Crash
+                            </Button>
+                        </Stack>
+                    </Grid>
+                    <Grid item xs={3} >
+                        <Stack
+                            direction="row"
+                            spacing={0}
+                            justifyContent="center"
+                        >
+                            <Button variant='outlined' size="small" onClick={() => crash(booth[1])} disabled={crashDisabled[1]}>
+                                Click to Crash
+                            </Button>
+                        </Stack>
+                    </Grid>
+                    <Grid item xs={3} >
+                        <Stack
+                            direction="row"
+                            spacing={0}
+                            justifyContent="center"
+                        >
+                            <Button variant='outlined' size="small" onClick={() => crash(booth[2])} disabled={crashDisabled[2]}>
+                                Click to Crash
+                            </Button>
+                        </Stack>
+                    </Grid>
+                    <Grid item xs={3} >
+                        <Stack
+                            direction="row"
+                            spacing={0}
+                            justifyContent="center"
+                        >
+                            <Button variant='outlined' size="small" onClick={() => crash(booth[3])} disabled={crashDisabled[3]}>
+                                Click to Crash
+                            </Button>
+                        </Stack>
                     </Grid>
                 </Grid>
             </Container>
             <Container
                 sx={{
                     maxWidth: "100vw",
-                    height: "35vh",
+                    height: "28vh",
                     mt: "1vh",
                     mb: "1vh",
                     border: 2,

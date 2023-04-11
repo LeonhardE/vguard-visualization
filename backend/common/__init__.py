@@ -1,6 +1,8 @@
+import random
 import sys
 import os
 import stat
+import socket
 
 VGUARD_DIR = os.path.abspath('./vguardbft')
 VGUARD_APP_PATH = os.path.join(VGUARD_DIR, 'vginstance')
@@ -22,7 +24,7 @@ def prepare_vguard():
         sys.exit('Vguard script folder not found!')
 
     create_run_script()
-    create_config()
+    write_new_config()
 
 
 def create_run_script():
@@ -35,6 +37,39 @@ def create_run_script():
 def create_config():
     with open(VGUARD_CONFIG_PATH, 'w') as f:
         f.write(VGUARD_CONFIG)
+
+
+def port_in_use(port):
+    test_socket = socket.socket()
+    ok = test_socket.connect_ex(('127.0.0.1', port))
+    test_socket.close()
+    return ok == 0
+
+
+def get_available_ports(count):
+    ret = []
+    while len(ret) < count:
+        port = random.randint(20000, 60000)
+        if port in ret:
+            continue
+        if port_in_use(port):
+            continue
+        ret.append(port)
+    return ret
+
+
+def generate_new_config():
+    config_str = r'# VGuard Visualization config. The first server is proposer.' + '\n'
+    ports = get_available_ports(32)
+    for serverid in [0, 1, 2, 3]:
+        port_slice = ports[serverid * 8: (serverid + 1) * 8]
+        config_str += str(serverid) + ' 127.0.0.1 vg ' + ' '.join(str(p) for p in port_slice) + '\n'
+    return config_str
+
+
+def write_new_config():
+    with open(VGUARD_CONFIG_PATH, 'w') as f:
+        f.write(generate_new_config())
 
 
 VGUARD_RUN_SCRIPT = r'''#!/bin/bash

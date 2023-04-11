@@ -57,14 +57,21 @@ class VGuardState(object):
                 return True
         return False
 
-    def commit_log(self, booth: list, order_log_entry: dict):
-        for car in booth:
-            ordered_logs = self.order_log[car]
-            for log in ordered_logs:
-                if log['blockId'] == order_log_entry['blockId']:
-                    ordered_logs.remove(log)
-                    break
+    def commit_log(self, car: int, order_log_entry: dict):
+        ordered_logs = self.order_log[car]
+        for log in ordered_logs:
+            if log['blockId'] == order_log_entry['blockId']:
+                ordered_logs.remove(log)
+                break
 
+        committed_logs = self.committed_log[car]
+        already_commited = False
+        for log in committed_logs:
+            if log['blockId'] == order_log_entry['blockId']:
+                already_commited = True
+                break
+
+        if not already_commited:
             self.committed_log[car].append({
                 'blockId': order_log_entry['blockId'],
                 'timestamp': order_log_entry['timestamp'],

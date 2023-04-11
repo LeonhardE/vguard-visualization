@@ -7,7 +7,7 @@ def app_start_order_phase():
     if not request.data:
         return jsonify({'success': 'false'})
 
-    params = json.loads(json.dumps(request.json))
+    params = request.json
     if 'booth' not in params or 'tx' not in params:
         return jsonify({'success': 'false'})
 

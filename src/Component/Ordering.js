@@ -17,19 +17,141 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
 export default function Ordering({
     booth,
-    initialTarget, onTargetChange,
-    onTargetApply, isApplyDisabled,
-    handleNextStep, isNextDisabled,
-    handleExit, isExitDisabled,
-    currMsgLst
+    setOpen,
+    clearSelection
 }) {
 
     const [level, setlevel] = useState(0);
+    const [orderTarget, setOrderTarget] = useState("");
+    const [isApplyDisabled, setIsApplyDisabled] = useState(false);
+    const [isNextDisabled, setIsNextDisabled] = useState(true);
+    const [isExitDisabled, setIsExitDisabled] = useState(false);
+    const [currMsgLst, setCurrMsgLst] = useState([]);
 
     const proposer = "Car".concat(booth[0]);
     const validator1 = "Car".concat(booth[1]);
     const validator2 = "Car".concat(booth[2]);
     const validator3 = "Car".concat(booth[3]);
+
+    async function startOrderPhase() {
+        setCurrMsgLst([]);
+        if (!booth) {
+            setIsApplyDisabled(false);
+            setIsNextDisabled(true);
+            setIsExitDisabled(false);
+            return {
+                'error': 'undefined booth',
+                'success': 'false'
+            };
+        } else if (orderTarget.length === 0) {
+            setIsApplyDisabled(false);
+            setIsNextDisabled(true);
+            setIsExitDisabled(false);
+            return {
+                'error': 'empty target',
+                'success': 'false'
+            };
+        } else {
+            const postData = {
+                'booth': [...booth],
+                'tx': orderTarget
+            }
+            console.log(postData);
+
+            const response = await fetch("http://localhost:8000/start_order_phase", {
+                method: 'POST', // *GET, POST, PUT, DELETE, etc.
+                mode: 'cors', // no-cors, cors, *same-origin
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(postData)
+            });
+            const data = await response.json();
+            console.log(data);
+
+            if (data['success'] === 'true') {
+                setIsApplyDisabled(true);
+                setIsNextDisabled(false);
+                setIsExitDisabled(true);
+                console.log(data['msg']);
+            } else {
+                setIsApplyDisabled(false);
+                setIsNextDisabled(true);
+                setIsExitDisabled(false);
+                console.log(data['error']);
+            }
+
+            return data;
+        }
+    }
+
+    async function handleNextStep() {
+        const postData = {}
+
+        const response = await fetch("http://localhost:8000/next_step", {
+            method: 'POST', // *GET, POST, PUT, DELETE, etc.
+            mode: 'cors', // no-cors, cors, *same-origin
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(postData)
+        });
+        const data = await response.json();
+        console.log(data);
+
+        if (data['success'] === 'true') {
+            setIsApplyDisabled(true);
+            setIsNextDisabled(false);
+            setIsExitDisabled(true);
+            console.log(data['msg']);
+            const msgLst = []
+            for (let i = 0; i < booth.length; i++) {
+                msgLst.push("");
+            }
+            for (let i = 0; i < data['msg'].length; i++) {
+                const idx = booth.indexOf(data['msg'][i]['id']);
+                if (idx >= 0) {
+                    const temp = []
+                    for (let [key, value] of Object.entries(data['msg'][i])) {
+                        if (key !== 'id') {
+                            temp.push(key.toString().concat(": ").concat(value));
+                        }
+                    }
+                    msgLst[idx] = temp.join('\n');
+                }
+            }
+            currMsgLst.push(msgLst)
+            setCurrMsgLst([...currMsgLst]);
+            console.log(currMsgLst);
+        } else {
+            // 'error': 'VGUARD_STOPPED'
+            setIsApplyDisabled(false);
+            setIsNextDisabled(true);
+            setIsExitDisabled(false);
+            console.log(data['error']);
+        }
+
+        return data;
+    }
+
+    const clearOrderTarget = () => {
+        setOrderTarget("");
+    }
+
+    function handleOrderTarget(e) {
+        setOrderTarget(e.target.value.toString());
+    };
+
+    const handleExit = () => {
+        setOpen([false, false]);
+        clearOrderTarget();
+        setIsApplyDisabled(false);
+        setIsNextDisabled(true);
+        setIsExitDisabled(false);
+        setCurrMsgLst([]);
+        // clear seletion
+        clearSelection();
+    };
 
     // auto scroll to bottom
     const messagesEndRef = useRef(null)
@@ -57,7 +179,6 @@ export default function Ordering({
                     sx={{
                         wordWrap: 'break-word',
                         whiteSpace: "pre-wrap",
-                        wordWrap: "break-word",
                         maxWidth: "12vw"
                     }}
                 >
@@ -101,11 +222,11 @@ export default function Ordering({
                     >
                         <TextField id="ordering-target"
                             label="Ordering Target"
-                            value={initialTarget}
-                            onChange={(e) => onTargetChange(e)}
+                            value={orderTarget}
+                            onChange={(e) => handleOrderTarget(e)}
                         />
                         <Button
-                            onClick={() => onTargetApply()}
+                            onClick={() => startOrderPhase()}
                             disabled={isApplyDisabled}
                         >
                             Apply

@@ -35,19 +35,14 @@ export default function VGuard() {
         temp[i] = false;
     }
 
-    const [orderTarget, setOrderTarget] = useState("");
     const [open, setOpen] = useState([false, false]);
     const [booth, setBooth] = useState([]);
     const [isSelected, setIsSelected] = useState(temp);
     const [proposer, setProposer] = useState("None");
-    const [consenTarget, setConsenTarget] = useState({ "blockId": "None", "booth": "", "timestamp": "None", "tx": "None" });
+    const [consenTarget, setConsenTarget] = useState({ "blockId": "None", "booth": "????", "timestamp": "None", "tx": "None" });
     const [orderLog, setOrderLog] = useState([]);
     const [commitLog, setCommitLog] = useState([]);
     const [openLog, setOpenLog] = useState(temp);
-    const [isApplyDisabled, setIsApplyDisabled] = useState(false);
-    const [isNextDisabled, setIsNextDisabled] = useState(true);
-    const [isExitDisabled, setIsExitDisabled] = useState(false);
-    const [currMsgLst, setCurrMsgLst] = useState([]);
 
     async function testGET() {
 
@@ -89,7 +84,7 @@ export default function VGuard() {
             setConsenTarget(order[0])
         }
         else {
-            setConsenTarget({ "blockId": "None", "booth": "", "timestamp": "None", "tx": "None" })
+            setConsenTarget({ "blockId": "None", "booth": "????", "timestamp": "None", "tx": "None" })
         }
         return order
     }
@@ -114,107 +109,6 @@ export default function VGuard() {
         return data.msg
     }
 
-    async function startOrderPhase() {
-        setCurrMsgLst([]);
-        if (!booth) {
-            setIsApplyDisabled(false);
-            setIsNextDisabled(true);
-            setIsExitDisabled(false);
-            return {
-                'error': 'undefined booth',
-                'success': 'false'
-            };
-        } else if (orderTarget.length == 0) {
-            setIsApplyDisabled(false);
-            setIsNextDisabled(true);
-            setIsExitDisabled(false);
-            return {
-                'error': 'empty target',
-                'success': 'false'
-            };
-        } else {
-            const postData = {
-                'booth': [...booth],
-                'tx': orderTarget
-            }
-            console.log(postData);
-
-            const response = await fetch("http://localhost:8000/start_order_phase", {
-                method: 'POST', // *GET, POST, PUT, DELETE, etc.
-                mode: 'cors', // no-cors, cors, *same-origin
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(postData)
-            });
-            const data = await response.json();
-            console.log(data);
-
-            if (data['success'] == 'true') {
-                setIsApplyDisabled(true);
-                setIsNextDisabled(false);
-                setIsExitDisabled(true);
-                console.log(data['msg']);
-            } else {
-                setIsApplyDisabled(false);
-                setIsNextDisabled(true);
-                setIsExitDisabled(false);
-                console.log(data['error']);
-            }
-
-            return data;
-        }
-    }
-
-    async function nextStep() {
-        const postData = {}
-
-        const response = await fetch("http://localhost:8000/next_step", {
-            method: 'POST', // *GET, POST, PUT, DELETE, etc.
-            mode: 'cors', // no-cors, cors, *same-origin
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(postData)
-        });
-        const data = await response.json();
-        console.log(data);
-
-        if (data['success'] == 'true') {
-            setIsApplyDisabled(true);
-            setIsNextDisabled(false);
-            setIsExitDisabled(true);
-            console.log(data['msg']);
-            const msgLst = []
-            for (let i = 0; i < booth.length; i++) {
-                msgLst.push("");
-            }
-            for (let i = 0; i < data['msg'].length; i++) {
-                const idx = booth.indexOf(data['msg'][i]['id']);
-                if (idx >= 0) {
-                    const temp = []
-                    for (let [key, value] of Object.entries(data['msg'][i])) {
-                        if (key != 'id') {
-                            temp.push(key.toString().concat(": ").concat(value));
-                        }
-                    }
-                    msgLst[idx] = temp.join('\n');
-                }
-            }
-            currMsgLst.push(msgLst)
-            setCurrMsgLst([...currMsgLst]);
-            console.log(currMsgLst);
-        } else {
-            // 'error': 'VGUARD_STOPPED'
-            setIsApplyDisabled(false);
-            setIsNextDisabled(true);
-            setIsExitDisabled(false);
-            console.log(data['error']);
-        }
-
-        return data;
-    }
-
     const handleOpenLog = (key) => {
         setOpenLog({ ...openLog, [key]: true });
         getOrderLog(key);
@@ -225,27 +119,11 @@ export default function VGuard() {
         setOpenLog({ ...openLog, [key]: false })
     }
 
-    const clearOrderTarget = () => {
-        setOrderTarget("");
-    }
-
-    function handleOrderTarget(e) {
-        setOrderTarget(e.target.value.toString());
-    };
-
-    const handleClose = () => {
-        setOpen([false, false]);
-        clearOrderTarget();
-        setIsApplyDisabled(false);
-        setIsNextDisabled(true);
-        setIsExitDisabled(false);
-        setCurrMsgLst([]);
-    };
+    
 
     const handleToggle = (key) => {
         if (key === 0) {
             setOpen([true, false]);
-            clearOrderTarget();
         }
         else {
             setOpen([false, true]);
@@ -280,7 +158,7 @@ export default function VGuard() {
             }
             else {
                 setProposer("None");
-                setConsenTarget({ "blockId": "None", "booth": "", "timestamp": "None", "tx": "None" })
+                setConsenTarget({ "blockId": "None", "booth": "????", "timestamp": "None", "tx": "None" })
             }
         }
     }
@@ -306,6 +184,13 @@ export default function VGuard() {
         else if (booth.length <= 4) {
             selectCar(key);
         }
+    }
+
+    const clearSelection = () => {
+        setBooth([]);
+        setIsSelected(temp);
+        setProposer("None");
+        setConsenTarget({ "blockId": "None", "booth": "????", "timestamp": "None", "tx": "None" });
     }
 
     useEffect(() => {
@@ -375,15 +260,8 @@ export default function VGuard() {
                         >
                             <Ordering
                                 booth={booth}
-                                initialTarget={orderTarget}
-                                onTargetChange={handleOrderTarget}
-                                onTargetApply={startOrderPhase}
-                                isApplyDisabled={isApplyDisabled}
-                                handleNextStep={nextStep}
-                                isNextDisabled={isNextDisabled}
-                                handleExit={handleClose}
-                                isExitDisabled={isExitDisabled}
-                                currMsgLst={currMsgLst}
+                                setOpen={setOpen}
+                                clearSelection={clearSelection}
                             />
                         </Box>
                     </Backdrop>
@@ -405,14 +283,6 @@ export default function VGuard() {
                             }}
                         >
                             <Consensus />
-                            <Button
-                                sx={{
-                                    bottom: 0,
-                                    left: "83vw"
-                                }}
-                                onClick={() => handleClose()}>
-                                Back
-                            </Button>
                         </Box>
                     </Backdrop>
                 </Container>

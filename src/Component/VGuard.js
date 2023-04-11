@@ -331,7 +331,7 @@ export default function VGuard() {
                                     open={openLog[car.key]}
                                     onClick={() => handleLogClose(car.key)}
                                 >
-                                    <List sx={{ width: '100%', maxWidth: 400, maxHeight: 600, bgcolor: 'background.paper' }}>
+                                    <List sx={{ width: '100%', maxWidth: 400, maxHeight: 600, overflow: 'auto', bgcolor: 'background.paper' }}>
                                         <ListItem alignItems="flex-start">
                                             <Typography variant="h6" color="text.primary">Order Log</Typography>
                                         </ListItem>

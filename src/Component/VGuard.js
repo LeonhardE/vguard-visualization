@@ -125,9 +125,9 @@ export default function VGuard() {
         const Boothcopy = [...booth];
         Boothcopy.push(key);
         setBooth(Boothcopy);
-        setIsSelected({...isSelected, [key]: true});
+        setIsSelected({ ...isSelected, [key]: true });
         if (Boothcopy.length === 1) {
-            setProposer("Car"+key);
+            setProposer("Car" + key);
             getConsenTarget(key);
         }
     }
@@ -141,10 +141,10 @@ export default function VGuard() {
             Boothcopy.push(booth[i]);
         }
         setBooth(Boothcopy);
-        setIsSelected({...isSelected, [key]: false});
-        if (proposer === "Car"+key) {
+        setIsSelected({ ...isSelected, [key]: false });
+        if (proposer === "Car" + key) {
             if (Boothcopy.length > 0) {
-                setProposer("Car"+Boothcopy[0])
+                setProposer("Car" + Boothcopy[0])
                 getConsenTarget(Boothcopy[0]);
             }
             else {
@@ -164,7 +164,7 @@ export default function VGuard() {
             Boothcopy.push(booth[i]);
         }
         setBooth(Boothcopy);
-        setProposer("Car"+key);
+        setProposer("Car" + key);
         getConsenTarget(key);
     }
 
@@ -172,7 +172,7 @@ export default function VGuard() {
         if (booth.includes(key)) {
             deselectCar(key);
         }
-        else if (booth.length <= 4){
+        else if (booth.length <= 4) {
             selectCar(key);
         }
     }
@@ -190,7 +190,7 @@ export default function VGuard() {
                     pb: 6,
                 }}
             >
-                <Container maxWidth="sm">
+                <Container maxWidth="100vw">
                     <Typography
                         component="h1"
                         variant="h2"
@@ -201,17 +201,17 @@ export default function VGuard() {
                         V-Guard Visualization
                     </Typography>
                     <Typography variant="h5" align="center" color="text.secondary" paragraph>
-                        This is visualization system for V-Guard. You can observe the ordering and consensus process in V-Guard through
-                        this webpage. 
+                        This is a visualization system for V-Guard.
+                        You can observe the ordering and consensus process in V-Guard through this webpage.
                     </Typography>
                     <Typography variant="body1" align="center" color="text.secondary" paragraph>
                         There must be four cars in the booth to start both ordering and consensus phase. The default proposer in the booth is the first selected car. <br />
-                        Booth Size: {booth.length}; Proposer: {proposer}<br />
+                        <b>Booth Size: {booth.length}; Proposer: {proposer} <br /></b>
                         For the consensus phase, the order log of the proposer car cannot be empty. The consensus target is set as the first record in the order log of the proposer. <br />
-                        Consensus Target: {consenTarget}
+                        <b>Consensus Target: {consenTarget}</b>
                     </Typography>
                     <Stack
-                        sx={{ pt: 4 }}
+                        sx={{ pt: "1vh" }}
                         direction="row"
                         spacing={2}
                         justifyContent="center"
@@ -284,17 +284,17 @@ export default function VGuard() {
             </Box>
 
             <Container maxWidth="100vw">
-                <Grid 
-                    container 
-                    justifyContent="center" 
-                    alignItems="center" 
+                <Grid
+                    container
+                    justifyContent="center"
+                    alignItems="center"
                     className="msgDisplay"
                     spacing={2}>
                     {carlist.map((car) => (
                         <Grid item key={car.key} xs={2.4}>
                             <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                                 <CardActionArea>
-                                    <CardMedia 
+                                    <CardMedia
                                         component="div"
                                         style={{
                                             display: 'flex',
@@ -303,7 +303,7 @@ export default function VGuard() {
                                             backgroundColor: isSelected[car.key] ? '#A0D4CD' : 'white'
                                         }}
                                     >
-                                        <img 
+                                        <img
                                             src="car.png"
                                             alt="car"
                                             style={{
@@ -322,14 +322,14 @@ export default function VGuard() {
                                 >
                                     <Typography variant="body2">{car.name}</Typography>
                                 </CardContent>
-                                <CardActions style={{justifyContent: 'center'}}>
-                                <Button size="small" color="primary" onClick={() => handleSelect(car.key)} disabled={booth.length === 4 && !isSelected[car.key]}>
-                                    {isSelected[car.key] ? "Deselect" : "Select"}
-                                </Button>
-                                <Button size="small" color="primary" onClick={() => handlesetProposer(car.key)} 
+                                <CardActions style={{ justifyContent: 'center' }}>
+                                    <Button size="small" color="primary" onClick={() => handleSelect(car.key)} disabled={booth.length === 4 && !isSelected[car.key]}>
+                                        {isSelected[car.key] ? "Deselect" : "Select"}
+                                    </Button>
+                                    <Button size="small" color="primary" onClick={() => handlesetProposer(car.key)}
                                         disabled={!isSelected[car.key] || proposer === "Car" + car.key}>
-                                    Set proposer
-                                </Button>
+                                        Set proposer
+                                    </Button>
                                 </CardActions>
                             </Card>
                         </Grid>

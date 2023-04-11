@@ -28,7 +28,7 @@ def app_start_consensus_phase():
     if not request.data:
         return jsonify({'success': 'false'})
 
-    params = json.loads(request.json)
+    params = request.json
     if 'booth' not in params:
         return jsonify({'success': 'false'})
 

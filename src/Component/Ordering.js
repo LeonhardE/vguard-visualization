@@ -10,7 +10,6 @@ import { ThemeProvider } from '@mui/material/styles';
 import { Item, lightTheme, Message } from './Util';
 import CssBaseline from '@mui/material/CssBaseline';
 import Grid from '@mui/material/Grid';
-import EmailIcon from '@mui/icons-material/Email';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
@@ -125,7 +124,7 @@ export default function Ordering({
             console.log(currMsgLst);
         } else {
             // 'error': 'VGUARD_STOPPED'
-            setIsApplyDisabled(false);
+            setIsApplyDisabled(true);
             setIsNextDisabled(true);
             setIsExitDisabled(false);
             console.log(data['error']);
@@ -277,27 +276,15 @@ export default function Ordering({
                 >
                     <Grid item xs={3}>
                         <img className="vehicle" alt="vehicle" src="car.png" />
-                        <EmailIcon className="msg1" opacity={level === 1 || level === 5 ? 1 : 0} />
-                        <EmailIcon className="msg2" opacity={level === 1 || level === 5 ? 1 : 0} />
-                        <EmailIcon className="msg3" opacity={level === 1 || level === 5 ? 1 : 0} />
                     </Grid>
                     <Grid item xs={3}>
                         <img className="vehicle" alt="vehicle" src="car.png" />
-                        <EmailIcon className="msg4"
-                            opacity={level === 3 ? 1 : 0}
-                        />
                     </Grid>
                     <Grid item xs={3}>
                         <img className="vehicle" alt="vehicle" src="car.png" />
-                        <EmailIcon className="msg5"
-                            opacity={level === 3 ? 1 : 0}
-                        />
                     </Grid>
                     <Grid item xs={3}>
                         <img className="vehicle" alt="vehicle" src="car.png" />
-                        <EmailIcon className="msg6"
-                            opacity={level === 3 ? 1 : 0}
-                        />
                     </Grid>
                     {/* vehicle identities */}
                     <Grid item xs={3}>
@@ -317,7 +304,7 @@ export default function Ordering({
             <Container
                 sx={{
                     maxWidth: "100vw",
-                    height: "37vh",
+                    height: "35vh",
                     mt: "1vh",
                     mb: "1vh",
                     border: 2,

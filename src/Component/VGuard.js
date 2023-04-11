@@ -282,7 +282,12 @@ export default function VGuard() {
                                 borderRadius: '5%'
                             }}
                         >
-                            <Consensus />
+                            <Consensus 
+                                booth={booth}
+                                consenTarget={consenTarget}
+                                setOpen={setOpen}
+                                clearSelection={clearSelection}
+                            />
                         </Box>
                     </Backdrop>
                 </Container>

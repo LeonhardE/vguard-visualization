@@ -8,7 +8,12 @@ import Button from '@mui/material/Button';
 import { ThemeProvider } from '@mui/material/styles';
 import { lightTheme } from './Util';
 import CssBaseline from '@mui/material/CssBaseline';
-// import Grid from '@mui/material/Grid';
+import Grid from '@mui/material/Grid';
+import Card from '@mui/material/Card'
+import CardActions from '@mui/material/CardActions';
+import CardActionArea from '@mui/material/CardActionArea';
+import CardContent from '@mui/material/CardContent';
+import CardMedia from '@mui/material/CardMedia';
 // import EmailIcon from '@mui/icons-material/Email';
 import Backdrop from '@mui/material/Backdrop';
 import Ordering from './Ordering';
@@ -44,10 +49,19 @@ export default function VGuard() {
         console.log(data);
     }
 
-    useEffect(() => {
-        testGET();
-        testPOST();
-    }, []);
+    async function getConsenTarget(key) {
+        const response = await fetch("http://localhost:8000/get_order_log/" + key, {
+            method: 'GET', // *GET, POST, PUT, DELETE, etc.
+            mode: 'cors', // no-cors, cors, *same-origin
+        });
+        const data = await response.json();
+        let orderlog = data.msg;
+        console.log(orderlog)
+        if (orderlog.length > 0) {
+            setConsenTarget(orderlog[0])
+        }
+        return orderlog
+    }
 
     const [orderTarget, setOrderTarget] = useState("");
 
@@ -85,6 +99,86 @@ export default function VGuard() {
         }
     };
 
+    let carlist = []
+    for (let i = 0; i < 10; i++) {
+        carlist.push({
+            name: "Car" + i,
+            key: i
+        })
+    }
+
+    const [booth, setBooth] = useState([]);
+
+    let temp = {};
+    for (let i = 0; i < carlist.length; i++) {
+        temp[i] = false;
+    }
+    const [isSelected, setIsSelected] = useState(temp);
+    const [proposer, setProposer] = useState("None");
+
+    useEffect(() => {
+        testGET();
+        testPOST();
+    }, []);
+
+    const selectCar = (key) => {
+        const Boothcopy = [...booth];
+        Boothcopy.push(key);
+        setBooth(Boothcopy);
+        setIsSelected({...isSelected, [key]: true});
+        if (Boothcopy.length === 1) {
+            setProposer("Car"+key);
+            getConsenTarget(key);
+        }
+    }
+
+    const deselectCar = (key) => {
+        const Boothcopy = [];
+        for (let i = 0; i < booth.length; i++) {
+            if (booth[i] === key) {
+                continue;
+            }
+            Boothcopy.push(booth[i]);
+        }
+        setBooth(Boothcopy);
+        setIsSelected({...isSelected, [key]: false});
+        if (proposer === "Car"+key) {
+            if (Boothcopy.length > 0) {
+                setProposer("Car"+Boothcopy[0])
+                getConsenTarget(Boothcopy[0]);
+            }
+            else {
+                setProposer("None");
+                setConsenTarget("None")
+            }
+        }
+    }
+
+    const handlesetProposer = (key) => {
+        // only works for selected and non-proposer car
+        const Boothcopy = [key];
+        for (let i = 0; i < booth.length; i++) {
+            if (booth[i] === key) {
+                continue;
+            }
+            Boothcopy.push(booth[i]);
+        }
+        setBooth(Boothcopy);
+        setProposer("Car"+key);
+        getConsenTarget(key);
+    }
+
+    const handleSelect = (key) => {
+        if (booth.includes(key)) {
+            deselectCar(key);
+        }
+        else if (booth.length <= 4){
+            selectCar(key);
+        }
+    }
+
+    const [consenTarget, setConsenTarget] = useState("None");
+
 
     return (
         <ThemeProvider theme={lightTheme}>
@@ -108,7 +202,13 @@ export default function VGuard() {
                     </Typography>
                     <Typography variant="h5" align="center" color="text.secondary" paragraph>
                         This is visualization system for V-Guard. You can observe the ordering and consensus process in V-Guard through
-                        this webpage. More features are coming soon!
+                        this webpage. 
+                    </Typography>
+                    <Typography variant="body1" align="center" color="text.secondary" paragraph>
+                        There must be four cars in the booth to start both ordering and consensus phase. The default proposer in the booth is the first selected car. <br />
+                        Booth Size: {booth.length}; Proposer: {proposer}<br />
+                        For the consensus phase, the order log of the proposer car cannot be empty. The consensus target is set as the first record in the order log of the proposer. <br />
+                        Consensus Target: {consenTarget}
                     </Typography>
                     <Stack
                         sx={{ pt: 4 }}
@@ -116,8 +216,8 @@ export default function VGuard() {
                         spacing={2}
                         justifyContent="center"
                     >
-                        <Button variant="contained" onClick={() => handleToggle(0)} >Ordering</Button>
-                        <Button variant="outlined" onClick={() => handleToggle(1)} >Consensus</Button>
+                        <Button variant="contained" onClick={() => handleToggle(0)} disabled={booth.length < 4} >Ordering</Button>
+                        <Button variant="contained" onClick={() => handleToggle(1)} disabled={consenTarget === "None" || booth.length < 4}>Consensus</Button>
                     </Stack>
                     <Backdrop
                         sx={{
@@ -140,6 +240,7 @@ export default function VGuard() {
                                 initialTarget={orderTarget}
                                 onTargetChange={handleOrderTarget}
                                 onTargetApply={handleOrder}
+                                booth={booth}
                             />
                             <Button
                                 sx={{
@@ -182,6 +283,59 @@ export default function VGuard() {
                 </Container>
             </Box>
 
+            <Container maxWidth="100vw">
+                <Grid 
+                    container 
+                    justifyContent="center" 
+                    alignItems="center" 
+                    className="msgDisplay"
+                    spacing={2}>
+                    {carlist.map((car) => (
+                        <Grid item key={car.key} xs={2.4}>
+                            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                                <CardActionArea>
+                                    <CardMedia 
+                                        component="div"
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            backgroundColor: isSelected[car.key] ? '#A0D4CD' : 'white'
+                                        }}
+                                    >
+                                        <img 
+                                            src="car.png"
+                                            alt="car"
+                                            style={{
+                                                maxWidth: '25%'
+                                            }}
+                                        />
+                                    </CardMedia>
+                                </CardActionArea>
+                                <CardContent
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        height: 20
+                                    }}
+                                >
+                                    <Typography variant="body2">{car.name}</Typography>
+                                </CardContent>
+                                <CardActions style={{justifyContent: 'center'}}>
+                                <Button size="small" color="primary" onClick={() => handleSelect(car.key)} disabled={booth.length === 4 && !isSelected[car.key]}>
+                                    {isSelected[car.key] ? "Deselect" : "Select"}
+                                </Button>
+                                <Button size="small" color="primary" onClick={() => handlesetProposer(car.key)} 
+                                        disabled={!isSelected[car.key] || proposer === "Car" + car.key}>
+                                    Set proposer
+                                </Button>
+                                </CardActions>
+                            </Card>
+                        </Grid>
+                    ))}
+                </Grid>
+            </Container>
         </ThemeProvider>
 
     );

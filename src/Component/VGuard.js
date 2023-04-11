@@ -49,15 +49,18 @@ export default function VGuard() {
         console.log(data);
     }
 
-    async function testLog(key) {
+    async function getConsenTarget(key) {
         const response = await fetch("http://localhost:8000/get_order_log/" + key, {
             method: 'GET', // *GET, POST, PUT, DELETE, etc.
             mode: 'cors', // no-cors, cors, *same-origin
         });
-
         const data = await response.json();
-        console.log(data);
-
+        let orderlog = data.msg;
+        console.log(orderlog)
+        if (orderlog.length > 0) {
+            setConsenTarget(orderlog[0])
+        }
+        return orderlog
     }
 
     const [orderTarget, setOrderTarget] = useState("");
@@ -111,12 +114,11 @@ export default function VGuard() {
         temp[i] = false;
     }
     const [isSelected, setIsSelected] = useState(temp);
-    const [isProposer, setIsProposer] = useState(temp);
+    const [proposer, setProposer] = useState("None");
 
     useEffect(() => {
         testGET();
         testPOST();
-        testLog(0);
     }, []);
 
     const selectCar = (key) => {
@@ -125,7 +127,8 @@ export default function VGuard() {
         setBooth(Boothcopy);
         setIsSelected({...isSelected, [key]: true});
         if (Boothcopy.length === 1) {
-            setIsProposer({...isProposer, [key]: true});
+            setProposer("Car"+key);
+            getConsenTarget(key);
         }
     }
 
@@ -139,20 +142,21 @@ export default function VGuard() {
         }
         setBooth(Boothcopy);
         setIsSelected({...isSelected, [key]: false});
-        if (isProposer[key]) {
+        if (proposer === "Car"+key) {
             if (Boothcopy.length > 0) {
-                setIsProposer({...isProposer, [key]: false, [Boothcopy[0]]: true});
+                setProposer("Car"+Boothcopy[0])
+                getConsenTarget(Boothcopy[0]);
             }
             else {
-                setIsProposer({...isProposer, [key]: false});
+                setProposer("None");
+                setConsenTarget("None")
             }
         }
     }
 
-    const setProposer = (key) => {
+    const handlesetProposer = (key) => {
         // only works for selected and non-proposer car
         const Boothcopy = [key];
-        let previous = booth[0];
         for (let i = 0; i < booth.length; i++) {
             if (booth[i] === key) {
                 continue;
@@ -160,7 +164,8 @@ export default function VGuard() {
             Boothcopy.push(booth[i]);
         }
         setBooth(Boothcopy);
-        setIsProposer({...isProposer, [key]: true, [previous]: false});
+        setProposer("Car"+key);
+        getConsenTarget(key);
     }
 
     const handleSelect = (key) => {
@@ -172,10 +177,7 @@ export default function VGuard() {
         }
     }
 
-    // useEffect(() => {
-    //     console.log(isSelected)
-    //     console.log(isProposer)
-    // }, [isSelected, isProposer])
+    const [consenTarget, setConsenTarget] = useState("None");
 
 
     return (
@@ -200,7 +202,13 @@ export default function VGuard() {
                     </Typography>
                     <Typography variant="h5" align="center" color="text.secondary" paragraph>
                         This is visualization system for V-Guard. You can observe the ordering and consensus process in V-Guard through
-                        this webpage. More features are coming soon!
+                        this webpage. 
+                    </Typography>
+                    <Typography variant="body1" align="center" color="text.secondary" paragraph>
+                        There must be four cars in the booth to start both ordering and consensus phase. The default proposer in the booth is the first selected car. <br />
+                        Booth Size: {booth.length}; Proposer: {proposer}<br />
+                        For the consensus phase, the order log of the proposer car cannot be empty. The consensus target is set as the first record in the order log of the proposer. <br />
+                        Consensus Target: {consenTarget}
                     </Typography>
                     <Stack
                         sx={{ pt: 4 }}
@@ -208,12 +216,9 @@ export default function VGuard() {
                         spacing={2}
                         justifyContent="center"
                     >
-                        <Button variant="contained" onClick={() => handleToggle(0)} >Ordering</Button>
-                        <Button variant="outlined" onClick={() => handleToggle(1)} >Consensus</Button>
+                        <Button variant="contained" onClick={() => handleToggle(0)} disabled={booth.length < 4} >Ordering</Button>
+                        <Button variant="contained" onClick={() => handleToggle(1)} disabled={consenTarget === "None" || booth.length < 4}>Consensus</Button>
                     </Stack>
-                    <Typography variant="body1" align="center" color="text.secondary" paragraph>
-                        Booth: {booth}
-                    </Typography>
                     <Backdrop
                         sx={{
                             color: '#fff',
@@ -294,7 +299,8 @@ export default function VGuard() {
                                         style={{
                                             display: 'flex',
                                             alignItems: 'center',
-                                            justifyContent: 'center'
+                                            justifyContent: 'center',
+                                            backgroundColor: isSelected[car.key] ? '#A0D4CD' : 'white'
                                         }}
                                     >
                                         <img 
@@ -320,8 +326,8 @@ export default function VGuard() {
                                 <Button size="small" color="primary" onClick={() => handleSelect(car.key)} disabled={booth.length === 4 && !isSelected[car.key]}>
                                     {isSelected[car.key] ? "Deselect" : "Select"}
                                 </Button>
-                                <Button size="small" color="primary" onClick={() => setProposer(car.key)} 
-                                        disabled={!isSelected[car.key] || isProposer[car.key]}>
+                                <Button size="small" color="primary" onClick={() => handlesetProposer(car.key)} 
+                                        disabled={!isSelected[car.key] || proposer === "Car" + car.key}>
                                     Set proposer
                                 </Button>
                                 </CardActions>

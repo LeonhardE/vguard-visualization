@@ -17,8 +17,6 @@ import CardMedia from '@mui/material/CardMedia';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import Divider from '@mui/material/Divider';
-// import ListItemText from '@mui/material/ListItemText';
-// import EmailIcon from '@mui/icons-material/Email';
 import Backdrop from '@mui/material/Backdrop';
 import Ordering from './Ordering';
 import Consensus from './Consensus'
@@ -122,19 +120,6 @@ export default function VGuard() {
 
     const handleLogClose = (key) => {
         setOpenLog({...openLog, [key]: false})
-    }
-
-    function LogDisplay(log) {
-        return (
-            <Typography color="text.primary">
-                BlockId: {log.blockId} <br />
-                Booth: {log.booth} <br />
-                {/* Hash: {log.hash} <br /> */}
-                Timestamp: {log.timestamp} <br />
-                {/* Tsig: {log.tsig} <br /> */}
-                Transaction: {log.tx}
-            </Typography>
-        )
     }
 
     const clearOrderTarget = () => {
@@ -260,10 +245,8 @@ export default function VGuard() {
                         For the consensus phase, the order log of the proposer car cannot be empty. The consensus target is set as the first record in the order log of the proposer. <br />
                         <b>Consensus Target</b> <br />
                         BlockId: {consenTarget.blockId} <br />
-                        Booth: {consenTarget.booth} <br />
-                        {/* Hash: {consenTarget.hash} <br /> */}
+                        Booth: Car{consenTarget.booth[0]} Car{consenTarget.booth[1]} Car{consenTarget.booth[2]} Car{consenTarget.booth[3]} <br />
                         Timestamp: {consenTarget.timestamp} <br />
-                        {/* Tsig: {consenTarget.tsig} <br /> */}
                         Transaction: {consenTarget.tx}
                                                         
                     </Typography>
@@ -388,7 +371,7 @@ export default function VGuard() {
                                             >
                                                 <Typography color="text.primary">
                                                     BlockId: {log.blockId} <br />
-                                                    Booth: {log.booth} <br />
+                                                    Booth: Car{log.booth[0]} Car{log.booth[1]} Car{log.booth[2]} Car{log.booth[3]} <br />
                                                     Timestamp: {log.timestamp} <br />
                                                     Transaction: {log.tx}
                                                 </Typography>
@@ -406,7 +389,7 @@ export default function VGuard() {
                                             >
                                                 <Typography color="text.primary">
                                                     BlockId: {log.blockId} <br />
-                                                    Booth: {log.booth} <br />
+                                                    Booth: Car{log.booth[0]} Car{log.booth[1]} Car{log.booth[2]} Car{log.booth[3]} <br />
                                                     Timestamp: {log.timestamp} <br />
                                                     Transaction: {log.tx}
                                                 </Typography>

@@ -13,7 +13,7 @@ import Grid from '@mui/material/Grid';
 import EmailIcon from '@mui/icons-material/Email';
 
 
-export default function Ordering({ initialTarget, onTargetChange, onTargetApply }) {
+export default function Ordering({ initialTarget, onTargetChange, onTargetApply, booth }) {
     const [level, setlevel] = useState(0);
 
     // auto scroll to bottom
@@ -37,7 +37,7 @@ export default function Ordering({ initialTarget, onTargetChange, onTargetApply 
                 }}
             >
                 <Typography variant="h3" align="center" color="text.primary">
-                    Ordering
+                    Ordering booth: {booth}
                 </Typography>
                 <Container maxWidth="sm">
                     <Stack

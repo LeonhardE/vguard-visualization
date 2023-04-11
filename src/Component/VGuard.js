@@ -42,7 +42,7 @@ export default function VGuard() {
     const [booth, setBooth] = useState([]);
     const [isSelected, setIsSelected] = useState(temp);
     const [proposer, setProposer] = useState("None");
-    const [consenTarget, setConsenTarget] = useState({"blockId": "None", "booth": "None", "timestamp": "None", "tx": "None"});
+    const [consenTarget, setConsenTarget] = useState({"blockId": "None", "booth": "", "timestamp": "None", "tx": "None"});
     const [orderLog, setOrderLog] = useState([]);
     const [commitLog, setCommitLog] = useState([]);
     const [openLog, setOpenLog] = useState(temp);
@@ -87,7 +87,7 @@ export default function VGuard() {
             setConsenTarget(order[0])
         }
         else {
-            setConsenTarget({"blockId": "None", "booth": "None", "timestamp": "None", "tx": "None"})
+            setConsenTarget({"blockId": "None", "booth": "", "timestamp": "None", "tx": "None"})
         }
         return order
     }
@@ -182,7 +182,7 @@ export default function VGuard() {
             }
             else {
                 setProposer("None");
-                setConsenTarget({"blockId": "None", "booth": "None", "timestamp": "None", "tx": "None"})
+                setConsenTarget({"blockId": "None", "booth": "", "timestamp": "None", "tx": "None"})
             }
         }
     }
@@ -257,7 +257,7 @@ export default function VGuard() {
                         justifyContent="center"
                     >
                         <Button variant="contained" onClick={() => handleToggle(0)} disabled={booth.length < 4} >Ordering</Button>
-                        <Button variant="contained" onClick={() => handleToggle(1)} disabled={consenTarget === "None" || booth.length < 4}>Consensus</Button>
+                        <Button variant="contained" onClick={() => handleToggle(1)} disabled={consenTarget.blockId === "None" || booth.length < 4}>Consensus</Button>
                     </Stack>
                     <Backdrop
                         sx={{

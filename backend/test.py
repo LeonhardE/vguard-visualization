@@ -9,7 +9,7 @@ url_base = 'http://127.0.0.1:8000'
 def start_order_phase(booth, tx):
     url = url_base + '/start_order_phase'
     params = {'booth': booth, 'tx': tx}
-    ret = requests.post(url, json=json.dumps(params))
+    ret = requests.post(url, json=params)
     data = json.loads(ret.text)
     if data['success'] == 'true':
         print(data['msg'])
@@ -20,7 +20,7 @@ def start_order_phase(booth, tx):
 def start_consensus_phase(booth):
     url = url_base + '/start_consensus_phase'
     params = {'booth': booth}
-    ret = requests.post(url, json=json.dumps(params))
+    ret = requests.post(url, json=params)
     data = json.loads(ret.text)
     if data['success'] == 'true':
         print(data['msg'])
@@ -70,7 +70,7 @@ start_order_phase([1, 2, 3, 5], 'tes23452345234523452345')
 next_step()
 next_step()
 
-terminate(2)
+# terminate(2)
 
 next_step()
 next_step()
@@ -84,24 +84,24 @@ for car in range(10):
 
 print()
 
-# start_consensus_phase([0, 1, 2, 6])
-# # terminate(2)
-# next_step()
-# next_step()
-# next_step()
-# next_step()
-# next_step()
-# next_step()
-# next_step()
-#
-# print()
-#
-# for car in range(10):
-#     print(car, 'order: ')
-#     get_order_log(car)
-#
-# print()
-#
-# for car in range(10):
-#     print(car, 'committed: ')
-#     get_committed_log(car)
+start_consensus_phase([1, 2, 3, 6])
+# terminate(2)
+next_step()
+next_step()
+next_step()
+next_step()
+next_step()
+next_step()
+next_step()
+
+print()
+
+for car in range(10):
+    print(car, 'order: ')
+    get_order_log(car)
+
+print()
+
+for car in range(10):
+    print(car, 'committed: ')
+    get_committed_log(car)

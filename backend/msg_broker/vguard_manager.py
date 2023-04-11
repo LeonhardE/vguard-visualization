@@ -317,7 +317,7 @@ class VGuardManager(object):
         output['id'] = self.booth[0]
         if output['state'] == 'CPB_broadcast_commited':
             self.vg_state.commit_log(self.booth[0], self.to_be_committed_log)
-        return output
+        return [output]
 
     def cp_step_5(self):
         return self.cp_step_3()

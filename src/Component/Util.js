@@ -29,6 +29,3 @@ export const Message = styled(Paper)(({ theme }) => ({
     textAlign: 'center',
     color: theme.palette.text.secondary,
   }));
-
-
-  

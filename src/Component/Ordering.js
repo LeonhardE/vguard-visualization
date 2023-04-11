@@ -11,10 +11,25 @@ import { Item, lightTheme, Message } from './Util';
 import CssBaseline from '@mui/material/CssBaseline';
 import Grid from '@mui/material/Grid';
 import EmailIcon from '@mui/icons-material/Email';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
 
-export default function Ordering({ initialTarget, onTargetChange, onTargetApply, booth }) {
+export default function Ordering({
+    booth,
+    initialTarget, onTargetChange,
+    onTargetApply, isApplyDisabled,
+    handleNextStep, isNextDisabled,
+    handleExit, isExitDisabled,
+    currMsgLst
+}) {
+
     const [level, setlevel] = useState(0);
+
+    const proposer = "Car".concat(booth[0]);
+    const validator1 = "Car".concat(booth[1]);
+    const validator2 = "Car".concat(booth[2]);
+    const validator3 = "Car".concat(booth[3]);
 
     // auto scroll to bottom
     const messagesEndRef = useRef(null)
@@ -25,6 +40,44 @@ export default function Ordering({ initialTarget, onTargetChange, onTargetApply,
     useEffect(() => {
         scrollToBottom()
     }, [level]);
+
+    const ReadMore = ({ children }) => {
+        const text = children;
+        const [isReadMore, setIsReadMore] = useState(true);
+        const toggleReadMore = () => {
+            setIsReadMore(!isReadMore);
+        };
+        return (
+            <Stack
+                direction="row"
+                spacing={2}
+                justifyContent="center"
+            >
+                <Box
+                    sx={{
+                        wordWrap: 'break-word',
+                        whiteSpace: "pre-wrap",
+                        wordWrap: "break-word",
+                        maxWidth: "12vw"
+                    }}
+                >
+                    {isReadMore ? text.slice(0, 20).concat("...") : text}
+                </Box>
+                <Button
+                    onClick={() => toggleReadMore()}
+                    sx={{
+                        top: 0,
+                        right: 0
+                    }}
+                >
+                    {isReadMore ?
+                        <KeyboardArrowDownIcon /> :
+                        <KeyboardArrowUpIcon />
+                    }
+                </Button>
+            </Stack>
+        );
+    };
 
 
     return (
@@ -37,7 +90,7 @@ export default function Ordering({ initialTarget, onTargetChange, onTargetApply,
                 }}
             >
                 <Typography variant="h3" align="center" color="text.primary">
-                    Ordering booth: {booth}
+                    Ordering Booth: [{proposer}, {validator1}, {validator2}, {validator3}]
                 </Typography>
                 <Container maxWidth="sm">
                     <Stack
@@ -53,6 +106,7 @@ export default function Ordering({ initialTarget, onTargetChange, onTargetApply,
                         />
                         <Button
                             onClick={() => onTargetApply()}
+                            disabled={isApplyDisabled}
                         >
                             Apply
                         </Button>
@@ -65,12 +119,26 @@ export default function Ordering({ initialTarget, onTargetChange, onTargetApply,
                         spacing={2}
                         justifyContent="center"
                     >
-                        <Button variant="contained" onClick={() => {
-                            setlevel(level + 1)
-                        }} >Next Step</Button>
-                        <Button variant="outlined" onClick={() => {
-                            setlevel(0)
-                        }} >Restart</Button>
+                        <Button
+                            variant="contained"
+                            onClick={() => {
+                                setlevel(level + 1);
+                                handleNextStep();
+                            }}
+                            disabled={isNextDisabled}
+                        >
+                            Next Step
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            onClick={() => {
+                                setlevel(0);
+                                handleExit();
+                            }}
+                            disabled={isExitDisabled}
+                        >
+                            Exit
+                        </Button>
                     </Stack>
                 </Container>
             </Box>
@@ -112,23 +180,23 @@ export default function Ordering({ initialTarget, onTargetChange, onTargetApply,
                     </Grid>
                     {/* vehicle identities */}
                     <Grid item xs={3}>
-                        <Item>Proposer</Item>
+                        <Item>{proposer} (Proposer)</Item>
                     </Grid>
                     <Grid item xs={3}>
-                        <Item>Validator</Item>
+                        <Item>{validator1} (Validator)</Item>
                     </Grid>
                     <Grid item xs={3}>
-                        <Item>Validator</Item>
+                        <Item>{validator2} (Validator)</Item>
                     </Grid>
                     <Grid item xs={3}>
-                        <Item>Validator</Item>
+                        <Item>{validator3} (Validator)</Item>
                     </Grid>
                 </Grid>
             </Container>
             <Container
                 sx={{
                     maxWidth: "100vw",
-                    height: "31vh",
+                    height: "37vh",
                     mt: "1vh",
                     mb: "1vh",
                     border: 2,
@@ -149,158 +217,398 @@ export default function Ordering({ initialTarget, onTargetChange, onTargetApply,
                     {/* Message level 1 */}
                     <Grid item xs={3}
                         // display = {level > 1 ? "none" : "block"}
-                        className={level >= 1 ? "showmsg" : "hiddenmsg"}>
-                        <Message>Send PreOrder Messages to all Validators <br />
-                            (Pre-Order, Bi, hBi, Vo, hVo, i, σVp)</Message>
+                        className={
+                            level >= 1 ? "showmsg" : "hiddenmsg"
+                        }>
+                        {currMsgLst.length >= 1 && currMsgLst[0][0] ?
+                            <Message>
+                                <ReadMore>
+                                    {currMsgLst[0][0]}
+                                </ReadMore>
+                            </Message>
+                            : ""
+                        }
                     </Grid>
                     <Grid item xs={3}
                         // display = {level > 1 ? "none" : "block"}
-                        className={level >= 1 ? "showmsg" : "hiddenmsg"}>
+                        className={
+                            level >= 1 ? "showmsg" : "hiddenmsg"
+                        }>
+                        {currMsgLst.length >= 1 && currMsgLst[0][1] ?
+                            <Message>
+                                <ReadMore>
+                                    {currMsgLst[0][1]}
+                                </ReadMore>
+                            </Message>
+                            : ""
+                        }
                     </Grid>
                     <Grid item xs={3}
                         // display = {level > 1 ? "none" : "block"}
-                        className={level >= 1 ? "showmsg" : "hiddenmsg"}>
+                        className={
+                            level >= 1 ? "showmsg" : "hiddenmsg"
+                        }>
+                        {currMsgLst.length >= 1 && currMsgLst[0][2] ?
+                            <Message>
+                                <ReadMore>
+                                    {currMsgLst[0][2]}
+                                </ReadMore>
+                            </Message>
+                            : ""
+                        }
                     </Grid>
                     <Grid item xs={3}
                         // display = {level > 1 ? "none" : "block"}
-                        className={level >= 1 ? "showmsg" : "hiddenmsg"}>
+                        className={
+                            level >= 1 ? "showmsg" : "hiddenmsg"
+                        }>
+                        {currMsgLst.length >= 1 && currMsgLst[0][3] ?
+                            <Message>
+                                <ReadMore>
+                                    {currMsgLst[0][3]}
+                                </ReadMore>
+                            </Message>
+                            : ""
+                        }
                     </Grid>
                     {/* Message level 2 */}
                     <Grid item xs={3}
                         // display = {level > 2 ? "none" : "block"}
-                        className={level >= 2 ? "showmsg" : "hiddenmsg"}>
+                        className={
+                            level >= 2 ? "showmsg" : "hiddenmsg"
+                        }>
+
+                        {currMsgLst.length >= 2 && currMsgLst[1][0] ?
+                            <Message>
+                                <ReadMore>
+                                    {currMsgLst[1][0]}
+                                </ReadMore>
+                            </Message>
+                            : ""
+                        }
                     </Grid>
                     <Grid item xs={3}
                         // display = {level > 2 ? "none" : "block"}
-                        className={level >= 2 ? "showmsg" : "hiddenmsg"}>
-                        <Message>Receive PreOrder Message <br />
-                            Start to verify
-                        </Message>
+                        className={
+                            level >= 2 ? "showmsg" : "hiddenmsg"
+                        }>
+                        {currMsgLst.length >= 2 && currMsgLst[1][1] ?
+                            <Message>
+                                <ReadMore>
+                                    {currMsgLst[1][1]}
+                                </ReadMore>
+                            </Message>
+                            : ""
+                        }
                     </Grid>
                     <Grid item xs={3}
                         // display = {level > 2 ? "none" : "block"}
-                        className={level >= 2 ? "showmsg" : "hiddenmsg"}>
-                        <Message>Receive PreOrder Message <br />
-                            Start to verify
-                        </Message>
+                        className={
+                            level >= 2 ? "showmsg" : "hiddenmsg"
+                        }>
+                        {currMsgLst.length >= 2 && currMsgLst[1][2] ?
+                            <Message>
+                                <ReadMore>
+                                    {currMsgLst[1][2]}
+                                </ReadMore>
+                            </Message>
+                            : ""
+                        }
                     </Grid>
                     <Grid item xs={3}
                         // display = {level > 2 ? "none" : "block"}
-                        className={level >= 2 ? "showmsg" : "hiddenmsg"}>
-                        <Message>Receive PreOrder Message <br />
-                            Start to verify
-                        </Message>
+                        className={
+                            level >= 2 ? "showmsg" : "hiddenmsg"
+                        }>
+                        {currMsgLst.length >= 2 && currMsgLst[1][3] ?
+                            <Message>
+                                <ReadMore>
+                                    {currMsgLst[1][3]}
+                                </ReadMore>
+                            </Message>
+                            : ""
+                        }
                     </Grid>
                     {/* Message level 3 */}
                     <Grid item xs={3}
                         // display = {level > 3 ? "none" : "block"}
-                        className={level >= 3 ? "showmsg" : "hiddenmsg"}>
+                        className={
+                            level >= 3 ? "showmsg" : "hiddenmsg"
+                        }>
+                        {currMsgLst.length >= 3 && currMsgLst[2][0] ?
+                            <Message>
+                                <ReadMore>
+                                    {currMsgLst[2][0]}
+                                </ReadMore>
+                            </Message>
+                            : ""
+                        }
                     </Grid>
                     <Grid item xs={3}
                         // display = {level > 3 ? "none" : "block"}
-                        className={level >= 3 ? "showmsg" : "hiddenmsg"}>
-                        <Message>If verified, reply to the proposer <br />
-                            (PO-Reply, i, σVi)
-                        </Message>
+                        className={
+                            level >= 3 ? "showmsg" : "hiddenmsg"
+                        }>
+                        {currMsgLst.length >= 3 && currMsgLst[2][1] ?
+                            <Message>
+                                <ReadMore>
+                                    {currMsgLst[2][1]}
+                                </ReadMore>
+                            </Message>
+                            : ""
+                        }
                     </Grid>
                     <Grid item xs={3}
                         // display = {level > 3 ? "none" : "block"}
-                        className={level >= 3 ? "showmsg" : "hiddenmsg"}>
-                        <Message>If verified, reply to the proposer <br />
-                            (PO-Reply, i, σVi)
-                        </Message>
+                        className={
+                            level >= 3 ? "showmsg" : "hiddenmsg"
+                        }>
+                        {currMsgLst.length >= 3 && currMsgLst[2][2] ?
+                            <Message>
+                                <ReadMore>
+                                    {currMsgLst[2][2]}
+                                </ReadMore>
+                            </Message>
+                            : ""
+                        }
                     </Grid>
                     <Grid item xs={3}
                         // display = {level > 3 ? "none" : "block"}
-                        className={level >= 3 ? "showmsg" : "hiddenmsg"}>
-                        <Message>If verified, reply to the proposer <br />
-                            (PO-Reply, i, σVi)
-                        </Message>
+                        className={
+                            level >= 3 ? "showmsg" : "hiddenmsg"
+                        }>
+                        {currMsgLst.length >= 3 && currMsgLst[2][3] ?
+                            <Message>
+                                <ReadMore>
+                                    {currMsgLst[2][3]}
+                                </ReadMore>
+                            </Message>
+                            : ""
+                        }
                     </Grid>
                     {/* Message level 4 */}
                     <Grid item xs={3}
                         // display = {level > 4 ? "none" : "block"}
-                        className={level >= 4 ? "showmsg" : "hiddenmsg"}>
-                        <Message>Collect at least 2f PO-Reply <br />
-                            Convert σVi to (t, n)-threshold signatures σoi</Message>
+                        className={
+                            level >= 4 ? "showmsg" : "hiddenmsg"
+                        }>
+                        {currMsgLst.length >= 4 && currMsgLst[3][0] ?
+                            <Message>
+                                <ReadMore>
+                                    {currMsgLst[3][0]}
+                                </ReadMore>
+                            </Message>
+                            : ""
+                        }
                     </Grid>
                     <Grid item xs={3}
                         // display = {level > 4 ? "none" : "block"}
-                        className={level >= 4 ? "showmsg" : "hiddenmsg"}>
+                        className={
+                            level >= 4 ? "showmsg" : "hiddenmsg"
+                        }>
+                        {currMsgLst.length >= 4 && currMsgLst[3][1] ?
+                            <Message>
+                                <ReadMore>
+                                    {currMsgLst[3][1]}
+                                </ReadMore>
+                            </Message>
+                            : ""
+                        }
                     </Grid>
                     <Grid item xs={3}
                         // display = {level > 4 ? "none" : "block"}
-                        className={level >= 4 ? "showmsg" : "hiddenmsg"}>
+                        className={
+                            level >= 4 ? "showmsg" : "hiddenmsg"
+                        }>
+                        {currMsgLst.length >= 4 && currMsgLst[3][2] ?
+                            <Message>
+                                <ReadMore>
+                                    {currMsgLst[3][2]}
+                                </ReadMore>
+                            </Message>
+                            : ""
+                        }
                     </Grid>
                     <Grid item xs={3}
                         // display = {level > 4 ? "none" : "block"}
-                        className={level >= 4 ? "showmsg" : "hiddenmsg"}>
+                        className={
+                            level >= 4 ? "showmsg" : "hiddenmsg"
+                        }>
+                        {currMsgLst.length >= 4 && currMsgLst[3][3] ?
+                            <Message>
+                                <ReadMore>
+                                    {currMsgLst[3][3]}
+                                </ReadMore>
+                            </Message>
+                            : ""
+                        }
                     </Grid>
                     {/* Message level 5 */}
                     <Grid item xs={3}
                         // display = {level > 5 ? "none" : "block"}
-                        className={level >= 5 ? "showmsg" : "hiddenmsg"}>
-                        <Message>Send Order Messages to all Validators <br />
-                            (Order, i, Qoi, σoi)</Message>
+                        className={
+                            level >= 5 ? "showmsg" : "hiddenmsg"
+                        }>
+                        {currMsgLst.length >= 5 && currMsgLst[4][0] ?
+                            <Message>
+                                <ReadMore>
+                                    {currMsgLst[4][0]}
+                                </ReadMore>
+                            </Message>
+                            : ""
+                        }
                     </Grid>
                     <Grid item xs={3}
                         // display = {level > 5 ? "none" : "block"}
-                        className={level >= 5 ? "showmsg" : "hiddenmsg"}>
+                        className={
+                            level >= 5 ? "showmsg" : "hiddenmsg"
+                        }>
+                        {currMsgLst.length >= 5 && currMsgLst[4][1] ?
+                            <Message>
+                                <ReadMore>
+                                    {currMsgLst[4][1]}
+                                </ReadMore>
+                            </Message>
+                            : ""
+                        }
                     </Grid>
                     <Grid item xs={3}
                         // display = {level > 5 ? "none" : "block"}
-                        className={level >= 5 ? "showmsg" : "hiddenmsg"}>
+                        className={
+                            level >= 5 ? "showmsg" : "hiddenmsg"
+                        }>
+                        {currMsgLst.length >= 5 && currMsgLst[4][2] ?
+                            <Message>
+                                <ReadMore>
+                                    {currMsgLst[4][2]}
+                                </ReadMore>
+                            </Message>
+                            : ""
+                        }
                     </Grid>
                     <Grid item xs={3}
                         // display = {level > 5 ? "none" : "block"}
-                        className={level >= 5 ? "showmsg" : "hiddenmsg"}>
+                        className={
+                            level >= 5 ? "showmsg" : "hiddenmsg"
+                        }>
+                        {currMsgLst.length >= 5 && currMsgLst[4][3] ?
+                            <Message>
+                                <ReadMore>
+                                    {currMsgLst[4][3]}
+                                </ReadMore>
+                            </Message>
+                            : ""
+                        }
                     </Grid>
                     {/* Message level 6 */}
                     <Grid item xs={3}
                         // display = {level > 6 ? "none" : "block"}
-                        className={level >= 6 ? "showmsg" : "hiddenmsg"}>
-                        <Message>Append an order log entry <br />
-                            [Oi, Bi, Qoi, Vo, σoi]
-                        </Message>
+                        className={
+                            level >= 6 ? "showmsg" : "hiddenmsg"
+                        }>
+                        {currMsgLst.length >= 6 && currMsgLst[5][0] ?
+                            <Message>
+                                <ReadMore>
+                                    {currMsgLst[5][0]}
+                                </ReadMore>
+                            </Message>
+                            : ""
+                        }
                     </Grid>
                     <Grid item xs={3}
                         // display = {level > 6 ? "none" : "block"}
-                        className={level >= 6 ? "showmsg" : "hiddenmsg"}>
-                        <Message>Receive Order Message <br />
-                            Start to verify
-                        </Message>
+                        className={
+                            level >= 6 ? "showmsg" : "hiddenmsg"
+                        }>
+                        {currMsgLst.length >= 6 && currMsgLst[5][1] ?
+                            <Message>
+                                <ReadMore>
+                                    {currMsgLst[5][1]}
+                                </ReadMore>
+                            </Message>
+                            : ""
+                        }
                     </Grid>
                     <Grid item xs={3}
                         // display = {level > 6 ? "none" : "block"}
-                        className={level >= 6 ? "showmsg" : "hiddenmsg"}>
-                        <Message>Receive Order Message <br />
-                            Start to verify
-                        </Message>
+                        className={
+                            level >= 6 ? "showmsg" : "hiddenmsg"
+                        }>
+                        {currMsgLst.length >= 6 && currMsgLst[5][2] ?
+                            <Message>
+                                <ReadMore>
+                                    {currMsgLst[5][2]}
+                                </ReadMore>
+                            </Message>
+                            : ""
+                        }
                     </Grid>
                     <Grid item xs={3}
                         // display = {level > 6 ? "none" : "block"}
-                        className={level >= 6 ? "showmsg" : "hiddenmsg"}>
-                        <Message>Receive Order Message <br />
-                            Start to verify
-                        </Message>
+                        className={
+                            level >= 6 ? "showmsg" : "hiddenmsg"
+                        }>
+                        {currMsgLst.length >= 6 && currMsgLst[5][3] ?
+                            <Message>
+                                <ReadMore>
+                                    {currMsgLst[5][3]}
+                                </ReadMore>
+                            </Message>
+                            : ""
+                        }
                     </Grid>
                     {/* Message level 7 */}
-                    <Grid item xs={3} className={level >= 7 ? "showmsg" : "hiddenmsg"}>
+                    <Grid item xs={3}
+                        className={
+                            level >= 7 ? "showmsg" : "hiddenmsg"
+                        }>
+                        {currMsgLst.length >= 7 && currMsgLst[6][0] ?
+                            <Message>
+                                <ReadMore>
+                                    {currMsgLst[6][0]}
+                                </ReadMore>
+                            </Message>
+                            : ""
+                        }
                     </Grid>
-                    <Grid item xs={3} className={level >= 7 ? "showmsg" : "hiddenmsg"}>
-                        <Message>If verified, append an order log entry <br />
-                            [Oi, Bi, Qoi, Vo, σoi]
-                        </Message>
+                    <Grid item xs={3}
+                        className={
+                            level >= 7 ? "showmsg" : "hiddenmsg"
+                        }>
+                        {currMsgLst.length >= 7 && currMsgLst[6][1] ?
+                            <Message>
+                                <ReadMore>
+                                    {currMsgLst[6][1]}
+                                </ReadMore>
+                            </Message>
+                            : ""
+                        }
                     </Grid>
-                    <Grid item xs={3} className={level >= 7 ? "showmsg" : "hiddenmsg"}>
-                        <Message>If verified, append an order log entry <br />
-                            [Oi, Bi, Qoi, Vo, σoi]
-                        </Message>
+                    <Grid item xs={3}
+                        className={
+                            level >= 7 ? "showmsg" : "hiddenmsg"
+                        }>
+                        {currMsgLst.length >= 7 && currMsgLst[6][2] ?
+                            <Message>
+                                <ReadMore>
+                                    {currMsgLst[6][2]}
+                                </ReadMore>
+                            </Message>
+                            : ""
+                        }
                     </Grid>
-                    <Grid item xs={3} className={level >= 7 ? "showmsg" : "hiddenmsg"}>
-                        <Message>If verified, append an order log entry <br />
-                            [Oi, Bi, Qoi, Vo, σoi]
-                        </Message>
+                    <Grid item xs={3}
+                        className={
+                            level >= 7 ? "showmsg" : "hiddenmsg"
+                        }>
+                        {currMsgLst.length >= 7 && currMsgLst[6][3] ?
+                            <Message>
+                                <ReadMore>
+                                    {currMsgLst[6][3]}
+                                </ReadMore>
+                            </Message>
+                            : ""
+                        }
                     </Grid>
                 </Grid>
                 <div ref={messagesEndRef} />

@@ -17,6 +17,13 @@ cd ./backend/vguardbft
 ./scripts/build.sh
 ```
 
+#### Install python packages
+```
+// you can use pip to install Flask and Flask-CORS to your python environment
+pip install -U Flask
+pip install -U flask-cors
+```
+
 ### How to Run
 
 This project needs to run with [yarn](https://yarnpkg.com/getting-started/install). The backend requires Python3 and Flask.

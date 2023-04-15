@@ -4,7 +4,7 @@
 
 The project aims to address the complexities of understanding distributed algorithms and reduce the difficulty of comprehending [V-Guard](https://github.com/vguardbc/vguardbft) [1], particularly with its intricate dynamic configuration.
 
-We decide to use a web-based approach to implement desired features. The V-Guard code will serve as middleware, while our system will be built using JavaScript, React, Flask and V-GuardBFT.
+Our visualization system is implemented using a web-based approach, and consists of a JavaScript and React-based frontend, a Flask-based web server, and a set of V-Guard instances.
 
 ## Artifacts that help run the code and reproduce the results
 
